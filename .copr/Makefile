@@ -11,6 +11,12 @@ srpm: prepare
 	@test -n "$(spec)" || { echo "COPR did not pass 'spec'"; exit 1; }
 	@test -n "$(outdir)" || { echo "COPR did not pass 'outdir'"; exit 1; }
 	spectool -g -R "./$(specfile)"
+	@if ls ./patches/*.patch >/dev/null 2>&1; then \
+		cp -f ./patches/*.patch ./; \
+	fi
+	@if ls ./patches/*.diff >/dev/null 2>&1; then \
+		cp -f ./patches/*.diff ./; \
+	fi
 	rpmbuild -bs \
 		--define "_sourcedir ${PWD}" \
 		--define "_specdir ${PWD}" \
@@ -19,4 +25,3 @@ srpm: prepare
 		--define "_rpmdir ${PWD}" \
 		--define "_buildrootdir ${PWD}/.build" \
 		"./$(specfile)"
-
