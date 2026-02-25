@@ -1,0 +1,48 @@
+name: Repoclosure
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 9 * * *'
+
+jobs:
+  repoclosure:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora_version:
+          - "43"
+          - "44"
+          - rawhide
+    container:
+      image: registry.fedoraproject.org/fedora:${{ matrix.fedora_version }}
+    env:
+      COPR_OWNER: ${{ vars.COPR_OWNER }}
+      COPR_PROJECT: ${{ vars.COPR_PROJECT }}
+    steps:
+      - name: Validate repo variables
+        run: |
+          test -n "${COPR_OWNER}" || { echo "Set repository variable COPR_OWNER"; exit 1; }
+          test -n "${COPR_PROJECT}" || { echo "Set repository variable COPR_PROJECT"; exit 1; }
+
+      - name: Add COPR repo file
+        run: |
+          cat > /etc/yum.repos.d/copr-hyprwm.repo <<EOF
+          [copr:${COPR_OWNER}:${COPR_PROJECT}]
+          name=COPR ${COPR_OWNER}/${COPR_PROJECT}
+          baseurl=https://download.copr.fedorainfracloud.org/results/${COPR_OWNER}/${COPR_PROJECT}/fedora-\$releasever-\$basearch/
+          type=rpm-md
+          skip_if_unavailable=True
+          gpgcheck=1
+          gpgkey=https://download.copr.fedorainfracloud.org/results/${COPR_OWNER}/${COPR_PROJECT}/pubkey.gpg
+          repo_gpgcheck=0
+          enabled=1
+          enabled_metadata=1
+          EOF
+
+      - name: Repoclosure
+        run: |
+          dnf -y install dnf-plugins-core
+          dnf repoclosure --check "copr:${COPR_OWNER}:${COPR_PROJECT}" --newest --best
+

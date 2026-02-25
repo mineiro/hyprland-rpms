@@ -1,0 +1,12 @@
+dist/
+.cache/
+*.log
+*.src.rpm
+*.rpm
+packages/*/*.tar
+packages/*/*.tar.*
+packages/*/*.zip
+packages/*/*.crate
+packages/*/sources/*
+!packages/*/sources/.gitkeep
+packages/*/.build/

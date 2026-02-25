@@ -1,0 +1,26 @@
+name: Spec Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  parse-and-lint:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/fedora:44
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tooling
+        run: |
+          dnf -y install --setopt=install_weak_deps=0 --nodocs \
+            rpm-build rpmdevtools rpmlint
+
+      - name: Parse and lint specs
+        run: |
+          ./scripts/check-specs.sh
+
