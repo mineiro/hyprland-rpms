@@ -92,7 +92,8 @@ Important:
 - `packages/hyprpaper/` has been updated back to the latest upstream release (`0.8.3`) and successfully built in COPR (`mineiro/hyprland`) after publishing `hyprtoolkit`; local validation currently includes Fedora 43/44/rawhide `mock --chain` (`hyprtoolkit` -> `hyprpaper`) with clean standalone `mock --rebuild` queued for a later validation pass.
 - `packages/hyprpicker/` has been added at the latest upstream release (`0.4.6`), locally validated on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It currently carries a small upstream header-fix patch (`#include <mutex>`) needed on newer Fedora toolchains (Fedora 44/rawhide / GCC 15).
 - `packages/hyprsunset/` has been added at the latest upstream release (`0.3.3`), locally validated on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds.
-- `packages/hyprpolkitagent/` has been added as the next ecosystem package starter (`0.1.3`) and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies. It currently depends at runtime on `hyprland-qt-support`, which is not packaged in this repo yet.
+- `packages/hyprpolkitagent/` has been added at the latest upstream release (`0.1.3`), locally validated on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It has a runtime dependency on `hyprland-qt-support`, so the Qt support trio is now the next packaging focus.
+- `packages/hyprland-qt-support/` has been added as the next Qt support stack package starter (`0.1.0`) and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies; it currently carries a small upstream CMake patch to fix project version initialization order.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
@@ -186,7 +187,8 @@ Build result legend (per Fedora columns):
 | `hyprpaper` | ecosystem app | 16 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.8.3`; local SRPM + `mock --chain` (local `hyprtoolkit` + `hyprpaper`) pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing after `hyprtoolkit` publish |
 | `hyprpicker` | ecosystem app | 17 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.4.6`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; carries temporary upstream header-fix patch (`#include <mutex>`) for Fedora 44/rawhide/GCC 15 builds |
 | `hyprsunset` | ecosystem app | 18 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.3.3`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing |
-| `hyprpolkitagent` | ecosystem app | 19 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.1.3`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; runtime `Requires: hyprland-qt-support` (not yet packaged in this repo) |
+| `hyprpolkitagent` | ecosystem app | 19 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.3`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; runtime `Requires: hyprland-qt-support` |
+| `hyprland-qt-support` | Qt support stack | 20 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | version `0.1.0`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; carries temporary CMake patch for project/version initialization order |
 
 Recommended usage:
 
@@ -214,7 +216,7 @@ Use a staged validation approach instead of a single "smoke test":
 
 1. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 2. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-3. Add `hyprpolkitagent` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
+3. Add `hyprland-qt-support` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
 4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
 5. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
