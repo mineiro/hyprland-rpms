@@ -1,5 +1,11 @@
 # Starter spec based on the solopasha/hyprlandRPM package, kept intentionally minimal.
 # Verify Epoch/Version/BuildRequires against current upstream and Fedora before release.
+#
+# Bundled sdbus-cpp policy (current): keep the bundled subproject tarball path for
+# now because the validated Fedora/COPR build path for this upstream release uses
+# upstream's subprojects/sdbus-cpp layout. Declare bundling explicitly and revisit
+# unbundling once a reliable system sdbus-cpp build path is confirmed across the
+# target Fedora/COPR matrix.
 
 %global sdbus_version 2.1.0
 
@@ -19,10 +25,10 @@ BuildRequires:  gcc-c++
 BuildRequires:  ninja-build
 BuildRequires:  systemd-rpm-macros
 BuildRequires:  pkgconfig(gbm)
-BuildRequires:  pkgconfig(hyprland-protocols)
-BuildRequires:  pkgconfig(hyprlang)
-BuildRequires:  pkgconfig(hyprutils)
-BuildRequires:  pkgconfig(hyprwayland-scanner)
+BuildRequires:  pkgconfig(hyprland-protocols) >= 0.7.0
+BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
+BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libpipewire-0.3)
 BuildRequires:  pkgconfig(libspa-0.2)
@@ -43,6 +49,8 @@ Recommends:     hyprpicker
 Enhances:       hyprland
 Supplements:    hyprland
 
+# Explicit bundled dependency declaration for Fedora packaging review and
+# repackaging audits. Update/remove if this package is switched to system sdbus-cpp.
 Provides:       bundled(sdbus-cpp) = %{sdbus_version}
 
 %description
@@ -50,6 +58,7 @@ Provides:       bundled(sdbus-cpp) = %{sdbus_version}
 
 %prep
 %autosetup -p1
+# Upstream expects the sdbus-cpp subproject tree at build time for this release.
 tar -xf %{SOURCE1} -C subprojects/sdbus-cpp --strip=1
 
 %build
