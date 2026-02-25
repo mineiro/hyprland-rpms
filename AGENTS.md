@@ -88,8 +88,9 @@ Important:
 - `packages/hyprlock/` has been added as the next ecosystem package starter (`0.9.2`), adapted from the `solopasha/hyprlandRPM` baseline; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies.
 - `packages/hypridle/` has been added as the next ecosystem package starter (`0.1.7`), adapted from the `solopasha/hyprlandRPM` baseline; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies.
 - `hypridle` has been onboarded to COPR (`mineiro/hyprland`) and COPR builds are passing on Fedora 43/44/rawhide.
-- `packages/hyprtoolkit/` has been added and locally validated at the latest upstream release (`0.5.3`) on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for the current Hypr stack plus a small compatibility patch set for the current validated `hyprgraphics 0.4.0` stack (in-memory image constructor fallback) and a portability include fix (`NAME_MAX` / `<limits.h>`).
-- `packages/hyprpaper/` has been updated back to the latest upstream release (`0.8.3`) and locally validated on Fedora 43/44/rawhide via `mock --chain` together with local `hyprtoolkit` (`0.5.3`) plus `mineiro/hyprland` COPR repo dependencies; clean standalone `mock --rebuild` should be re-run after `hyprtoolkit` is published in COPR.
+- `packages/hyprtoolkit/` has been added at the latest upstream release (`0.5.3`), locally validated on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It currently carries a small compatibility patch set for the validated `hyprgraphics 0.4.0` stack (in-memory image constructor fallback) plus portability fixes (`NAME_MAX` / `<limits.h>`).
+- `packages/hyprpaper/` has been updated back to the latest upstream release (`0.8.3`) and successfully built in COPR (`mineiro/hyprland`) after publishing `hyprtoolkit`; local validation currently includes Fedora 43/44/rawhide `mock --chain` (`hyprtoolkit` -> `hyprpaper`) with clean standalone `mock --rebuild` queued for a later validation pass.
+- `packages/hyprpicker/` has been added as the next ecosystem package starter (`0.4.6`) and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies; it currently carries a small upstream header-fix patch (`#include <mutex>`) needed on newer Fedora toolchains (Fedora 44/rawhide).
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
@@ -179,8 +180,9 @@ Build result legend (per Fedora columns):
 | `uwsm` | session manager/runtime dependency | 12 | `COPR` | `-` | `-` | `-` | `yes` | `ok` | added to satisfy `hyprland-uwsm` runtime dependency; COPR builds pass on Fedora 43/44/rawhide; repoclosure passes after publishing |
 | `hyprlock` | ecosystem app | 13 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | starter spec added (`0.9.2`), includes documented temporary bundled `sdbus-cpp`; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing in `mineiro/hyprland` |
 | `hypridle` | ecosystem app | 14 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | starter spec added (`0.1.7`), includes documented temporary bundled `sdbus-cpp`; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing in `mineiro/hyprland` |
-| `hyprtoolkit` | ecosystem library/toolkit | 15 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.5.3`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; carries temporary compatibility patch for current `hyprgraphics 0.4.0` stack and portability include fix (`NAME_MAX`) |
-| `hyprpaper` | ecosystem app | 16 | `MRH` | `ok` | `ok` | `ok` | `yes` | `ok` | updated back to latest upstream `0.8.3`; local SRPM + `mock --chain` (local `hyprtoolkit` + `hyprpaper`) pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR package entry exists but currently needs rebuild to publish `0.8.3` |
+| `hyprtoolkit` | ecosystem library/toolkit | 15 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.5.3`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; carries temporary compatibility patch for current `hyprgraphics 0.4.0` stack and portability fixes (`NAME_MAX`, missing includes) |
+| `hyprpaper` | ecosystem app | 16 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.8.3`; local SRPM + `mock --chain` (local `hyprtoolkit` + `hyprpaper`) pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing after `hyprtoolkit` publish |
+| `hyprpicker` | ecosystem app | 17 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.4.6`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; carries temporary upstream header-fix patch (`#include <mutex>`) for Fedora 44/rawhide/GCC 15 builds |
 
 Recommended usage:
 
@@ -208,9 +210,9 @@ Use a staged validation approach instead of a single "smoke test":
 
 1. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 2. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-3. Add `hyprtoolkit` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
+3. Add `hyprpicker` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
 4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
-5. Rebuild `hyprpaper` in `mineiro/hyprland` to publish the latest validated `0.8.3` after `hyprtoolkit` is available in COPR, then re-run clean standalone `mock --rebuild`.
+5. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
 
 ## Working conventions for future edits
