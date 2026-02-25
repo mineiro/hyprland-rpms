@@ -86,11 +86,12 @@ Important:
   - graphical mode passes locally via GDM auto-login into the default Hyprland session (`hyprland.desktop`), with screenshot/log capture and a tty fallback path available for debugging
   - graphical runs now support best-effort virgl/SPICE GL acceleration with automatic fallback to non-accelerated graphics when host EGL/virgl is unavailable
 - `packages/hyprlock/` has been added as the next ecosystem package starter (`0.9.2`), adapted from the `solopasha/hyprlandRPM` baseline; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies.
+- `packages/hypridle/` has been added as the next ecosystem package starter (`0.1.7`), adapted from the `solopasha/hyprlandRPM` baseline; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
   - re-validate/tune newly added dependency floors and any Fedora version-specific conditionals as packages evolve
-  - final packaging polish/review for bundled components (currently `xdg-desktop-portal-hyprland` and `hyprlock` carry bundled `sdbus-cpp` declarations)
+  - final packaging polish/review for bundled components (currently `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` carry bundled `sdbus-cpp` declarations)
   - revisit bundling declarations if upstream release contents or build paths change
 
 ## COPR strategy (agreed)
@@ -173,8 +174,8 @@ Build result legend (per Fedora columns):
 | `hyprland` | compositor | 10 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.53.3`); full mock chain pass on Fedora 43/44/rawhide; clean standalone `mock --rebuild` also revalidated on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo; `hyprpm`/`start-hyprland`/`hyprland-uwsm` in package output |
 | `xdg-desktop-portal-hyprland` | portal backend | 11 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`1.3.11`); full mock chain pass on Fedora 43/44/rawhide; clean standalone `mock --rebuild` also revalidated on Fedora 43/44/rawhide via `mineiro/hyprland`; includes `pkgconfig(libspa-0.2)` and bundled `sdbus-cpp` declaration |
 | `uwsm` | session manager/runtime dependency | 12 | `COPR` | `-` | `-` | `-` | `yes` | `ok` | added to satisfy `hyprland-uwsm` runtime dependency; COPR builds pass on Fedora 43/44/rawhide; repoclosure passes after publishing |
-| `hyprlock` | ecosystem app | 13 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | starter spec added (`0.9.2`), includes documented temporary bundled `sdbus-cpp`; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps |
-| `hypridle` | ecosystem app | 14 | `NS` | `-` | `-` | `-` | `no` | `-` | add after core chain stabilizes |
+| `hyprlock` | ecosystem app | 13 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | starter spec added (`0.9.2`), includes documented temporary bundled `sdbus-cpp`; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing in `mineiro/hyprland` |
+| `hypridle` | ecosystem app | 14 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | starter spec added (`0.1.7`), includes documented temporary bundled `sdbus-cpp`; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps |
 | `hyprpaper` | ecosystem app | 15 | `NS` | `-` | `-` | `-` | `no` | `-` | optional early package, lower risk than Hyprland |
 
 Recommended usage:
@@ -203,9 +204,9 @@ Use a staged validation approach instead of a single "smoke test":
 
 1. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 2. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-3. Add `hyprlock` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
-4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland` and `hyprlock` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
-5. Expand package coverage (`hypridle`, `hyprpaper`) using the existing validation pipeline (mock -> COPR -> repoclosure -> container smoke -> KVM smoke).
+3. Add `hypridle` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
+4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
+5. Expand package coverage (`hyprpaper`) using the existing validation pipeline (mock -> COPR -> repoclosure -> container smoke -> KVM smoke).
 6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
 
 ## Working conventions for future edits

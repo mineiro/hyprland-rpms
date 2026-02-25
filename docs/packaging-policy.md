@@ -27,6 +27,7 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - Current temporary bundled dependency exceptions (to be reviewed regularly):
   - `xdg-desktop-portal-hyprland`: bundled `sdbus-cpp`
   - `hyprlock`: bundled `sdbus-cpp`
+  - `hypridle`: bundled `sdbus-cpp`
 
 Suggested initial package order:
 
