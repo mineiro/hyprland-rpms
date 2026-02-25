@@ -36,6 +36,8 @@ Common options:
   --connect URI            libvirt URI (e.g. qemu:///system or qemu:///session)
   --graphics MODE          virt-install graphics mode (default: none for
                            headless; spice for graphical unless overridden)
+  --graphics-accel MODE    Graphical VM accel policy: auto or off (default:
+                           auto; `auto` tries virgl/SPICE GL and falls back)
   --osinfo VALUE           virt-install --osinfo value (default:
                            auto-select fedora<release> when available, else
                            detect=on,require=off)
@@ -86,6 +88,9 @@ Notes:
   - By default, the script tries a release-matched virt-install `--osinfo`
     value (for example `fedora43`) and falls back to `detect=on,require=off`
     if the host libosinfo database does not provide it.
+  - In graphical mode, `--graphics-accel auto` tries SPICE GL/virgl first and
+    automatically falls back to non-accelerated graphics if the host lacks EGL
+    or virgl support. Use `--graphics-accel off` to skip the accelerated probe.
   - If --connect is not provided, the script prefers `qemu:///system` when it
     is accessible, otherwise it falls back to `qemu:///session`.
   - For `qemu:///system`, the script prefers `sudo` (if available) and keeps
@@ -422,6 +427,7 @@ maybe_auto_select_osinfo_value() {
 validate_and_apply_smoke_mode_defaults() {
   smoke_mode="${smoke_mode,,}"
   graphical_session_mode="${graphical_session_mode,,}"
+  graphics_accel_mode="${graphics_accel_mode,,}"
 
   case "${smoke_mode}" in
     headless|graphical)
@@ -436,6 +442,14 @@ validate_and_apply_smoke_mode_defaults() {
       ;;
     *)
       die "Invalid --graphical-session-mode value: ${graphical_session_mode} (expected: gdm or tty)"
+      ;;
+  esac
+
+  case "${graphics_accel_mode}" in
+    auto|off)
+      ;;
+    *)
+      die "Invalid --graphics-accel value: ${graphics_accel_mode} (expected: auto or off)"
       ;;
   esac
 
@@ -521,6 +535,7 @@ libvirt_network="default"
 libvirt_uri=""
 graphics_mode="none"
 graphics_explicit=0
+graphics_accel_mode="auto"
 osinfo_value="detect=on,require=off"
 osinfo_explicit=0
 timeout_sec="600"
@@ -595,6 +610,10 @@ while [[ $# -gt 0 ]]; do
     --graphics)
       graphics_mode="${2:-}"
       graphics_explicit=1
+      shift 2
+      ;;
+    --graphics-accel)
+      graphics_accel_mode="${2:-}"
       shift 2
       ;;
     --osinfo)
@@ -867,6 +886,51 @@ collect_remote_logs() {
     ssh "${opts[@]}" "${ssh_user}@${ip}" \
       'pgrep -a swaybg || true' \
       > "${run_dir}/pgrep-swaybg.log" 2>&1 || true
+
+    ssh "${opts[@]}" "${ssh_user}@${ip}" \
+      "sudo bash -s -- '${ssh_user}'" \
+      > "${run_dir}/graphical-user-services.log" 2>&1 <<'EOF' || true
+set -euo pipefail
+
+login_user="$1"
+uid="$(id -u "${login_user}")"
+runtime_dir="/run/user/${uid}"
+
+echo "login_user=${login_user}"
+echo "uid=${uid}"
+echo "runtime_dir=${runtime_dir}"
+echo
+
+if [[ ! -d "${runtime_dir}" ]]; then
+  echo "XDG runtime dir missing (user manager likely not active yet): ${runtime_dir}"
+  exit 0
+fi
+
+runuser -u "${login_user}" -- env XDG_RUNTIME_DIR="${runtime_dir}" \
+  systemctl --user --no-pager --full status \
+    pipewire.service \
+    wireplumber.service \
+    xdg-desktop-portal.service \
+    xdg-desktop-portal-hyprland.service || true
+
+echo
+echo "==== systemctl --user is-active ===="
+runuser -u "${login_user}" -- env XDG_RUNTIME_DIR="${runtime_dir}" \
+  systemctl --user is-active \
+    pipewire.service \
+    wireplumber.service \
+    xdg-desktop-portal.service \
+    xdg-desktop-portal-hyprland.service || true
+
+echo
+echo "==== journalctl --user targeted units ===="
+runuser -u "${login_user}" -- env XDG_RUNTIME_DIR="${runtime_dir}" \
+  journalctl --user -b --no-pager \
+    -u pipewire.service \
+    -u wireplumber.service \
+    -u xdg-desktop-portal.service \
+    -u xdg-desktop-portal-hyprland.service || true
+EOF
 
     if [[ "${graphical_session_mode}" == "gdm" ]]; then
       ssh "${opts[@]}" "${ssh_user}@${ip}" \
@@ -1314,7 +1378,7 @@ create_vm() {
   local accel_requested=0
   effective_graphics_mode="${graphics_mode}"
 
-  if [[ "${smoke_mode}" == "graphical" && "${graphics_explicit}" -eq 0 && "${graphics_mode}" == "spice" ]]; then
+  if [[ "${smoke_mode}" == "graphical" && "${graphics_accel_mode}" == "auto" && "${graphics_explicit}" -eq 0 && "${graphics_mode}" == "spice" ]]; then
     effective_graphics_mode="spice,gl.enable=yes"
     accel_requested=1
   fi
@@ -1493,6 +1557,7 @@ main() {
   log "Smoke mode: ${smoke_mode}"
   if [[ "${smoke_mode}" == "graphical" ]]; then
     log "Graphical session mode: ${graphical_session_mode}"
+    log "Graphical accel mode: ${graphics_accel_mode}"
   fi
   log "Target COPR: ${copr_owner}/${copr_project}"
   log "VM name: ${vm_name}"
