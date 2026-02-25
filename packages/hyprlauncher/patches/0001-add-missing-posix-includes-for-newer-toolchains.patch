@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: jnetto <jnetto@example.invalid>
+Date: Wed, 25 Feb 2026 00:00:00 +0000
+Subject: [PATCH] add missing POSIX includes for newer toolchains
+
+`NAME_MAX` and `read()` are used without including the corresponding headers,
+which breaks on newer Fedora toolchains.
+---
+ src/config/ConfigManager.cpp             | 2 ++
+ src/finders/desktop/DesktopFinder.cpp    | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/src/config/ConfigManager.cpp b/src/config/ConfigManager.cpp
+index 6ca39f1..2f5f1fb 100644
+--- a/src/config/ConfigManager.cpp
++++ b/src/config/ConfigManager.cpp
+@@ -3,6 +3,8 @@
+ 
+ #include <hyprutils/path/Path.hpp>
+ 
++#include <limits.h>
++#include <unistd.h>
+ CConfigManager::CConfigManager() : m_inotifyFd(inotify_init()) {
+     const auto CFGPATH = Hyprutils::Path::findConfig("hyprlauncher").first.value_or("");
+     m_configPath       = CFGPATH;
+diff --git a/src/finders/desktop/DesktopFinder.cpp b/src/finders/desktop/DesktopFinder.cpp
+index f738bd8..8dff86f 100644
+--- a/src/finders/desktop/DesktopFinder.cpp
++++ b/src/finders/desktop/DesktopFinder.cpp
+@@ -11,6 +11,7 @@
+ #include <sys/inotify.h>
+ #include <sys/poll.h>
+ #include <unordered_set>
++#include <unistd.h>
+ 
+ #include <hyprutils/string/String.hpp>
+ #include <hyprutils/os/Process.hpp>
+-- 
+2.49.0
+
