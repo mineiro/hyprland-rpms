@@ -20,6 +20,9 @@ COPR target options:
   --project PROJECT        COPR project (default: $COPR_PROJECT or hyprland)
 
 Common options:
+  --smoke-mode MODE        Smoke stage: headless or graphical (default: headless)
+  --graphical-session-mode MODE
+                           Graphical session path: gdm or tty (default: gdm)
   --base-image PATH        Fedora cloud qcow2 image (optional; if omitted the
                            script downloads/caches a Fedora cloud image for
                            --release under .cache/kvm-smoke/images/)
@@ -31,7 +34,8 @@ Common options:
   --disk-size-gb N         Overlay disk size (default: 30)
   --network NAME           libvirt network name (default: default)
   --connect URI            libvirt URI (e.g. qemu:///system or qemu:///session)
-  --graphics MODE          virt-install graphics mode (default: none)
+  --graphics MODE          virt-install graphics mode (default: none for
+                           headless; spice for graphical unless overridden)
   --osinfo VALUE           virt-install --osinfo value (default:
                            auto-select fedora<release> when available, else
                            detect=on,require=off)
@@ -51,6 +55,12 @@ Examples:
   ./scripts/kvm-smoke-headless.sh --release 43
 
   ./scripts/kvm-smoke-headless.sh \
+    --smoke-mode graphical --release 44 --keep-vm
+
+  ./scripts/kvm-smoke-headless.sh \
+    --smoke-mode graphical --graphical-session-mode tty --release 44 --keep-vm
+
+  ./scripts/kvm-smoke-headless.sh \
     --owner mineiro --project hyprland \
     --release 44
 
@@ -65,11 +75,12 @@ Examples:
     --release rawhide --keep-vm
 
 Notes:
-  - This is a headless integration stage. It validates a full Fedora VM with
-    systemd/logind and package installation/user-unit file presence, but it does
-    not attempt to start a graphical Hyprland session.
-  - A future graphical stage can reuse this harness with a different graphics
-    mode and additional session startup assertions.
+  - `headless` mode validates a full Fedora VM with systemd/logind and package
+    installation/user-unit file presence.
+  - `graphical` mode builds on the headless checks, then uses either a `gdm`
+    auto-login session (default) or a tty1 auto-login smoke path, attempts a
+    Hyprland start, and captures extra logs/artifacts (including a best-effort
+    VM screenshot).
   - Auto-downloaded images are fetched from Fedora cloud image directories and
     verified against the published SHA256 CHECKSUM file before use.
   - By default, the script tries a release-matched virt-install `--osinfo`
@@ -154,6 +165,9 @@ ssh_opts() {
   printf '%s\n' \
     "-i" "$key_path" \
     "-o" "BatchMode=yes" \
+    "-o" "IdentitiesOnly=yes" \
+    "-o" "PreferredAuthentications=publickey" \
+    "-o" "PasswordAuthentication=no" \
     "-o" "StrictHostKeyChecking=no" \
     "-o" "UserKnownHostsFile=/dev/null" \
     "-o" "ConnectTimeout=5"
@@ -405,6 +419,35 @@ maybe_auto_select_osinfo_value() {
   done
 }
 
+validate_and_apply_smoke_mode_defaults() {
+  smoke_mode="${smoke_mode,,}"
+  graphical_session_mode="${graphical_session_mode,,}"
+
+  case "${smoke_mode}" in
+    headless|graphical)
+      ;;
+    *)
+      die "Invalid --smoke-mode value: ${smoke_mode} (expected: headless or graphical)"
+      ;;
+  esac
+
+  case "${graphical_session_mode}" in
+    gdm|tty)
+      ;;
+    *)
+      die "Invalid --graphical-session-mode value: ${graphical_session_mode} (expected: gdm or tty)"
+      ;;
+  esac
+
+  if [[ "${smoke_mode}" == "graphical" ]]; then
+    if [[ "${graphics_explicit}" -eq 0 ]]; then
+      graphics_mode="spice"
+    elif [[ "${graphics_mode}" == "none" ]]; then
+      die "--smoke-mode graphical requires --graphics not equal to 'none'"
+    fi
+  fi
+}
+
 apply_default_workdir_for_libvirt() {
   if [[ "${workdir_explicit}" -eq 1 || -n "${KVM_SMOKE_WORKDIR:-}" ]]; then
     return 0
@@ -466,6 +509,8 @@ system_default_workdir="/var/tmp/hyprland-rpms-kvm-smoke"
 copr_owner="${COPR_OWNER:-${default_copr_owner}}"
 copr_project="${COPR_PROJECT:-${default_copr_project}}"
 base_image=""
+smoke_mode="headless"
+graphical_session_mode="gdm"
 release_label="44"
 vm_name=""
 ssh_user="fedora"
@@ -475,6 +520,7 @@ disk_size_gb="30"
 libvirt_network="default"
 libvirt_uri=""
 graphics_mode="none"
+graphics_explicit=0
 osinfo_value="detect=on,require=off"
 osinfo_explicit=0
 timeout_sec="600"
@@ -504,6 +550,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --base-image)
       base_image="${2:-}"
+      shift 2
+      ;;
+    --smoke-mode)
+      smoke_mode="${2:-}"
+      shift 2
+      ;;
+    --graphical-session-mode)
+      graphical_session_mode="${2:-}"
       shift 2
       ;;
     --release)
@@ -540,6 +594,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --graphics)
       graphics_mode="${2:-}"
+      graphics_explicit=1
       shift 2
       ;;
     --osinfo)
@@ -678,12 +733,48 @@ wait_for_ip() {
   while (( SECONDS < deadline )); do
     candidate="$(
       run_virsh "${virsh_args[@]}" domifaddr "${vm_name}" --source lease 2>/dev/null \
-        | awk '/ipv4/ {sub(/\/.*/, "", $4); print $4; exit}'
+        | awk '
+            /ipv4/ {
+              ip=$4
+              sub(/\/.*/, "", ip)
+              if (ip ~ /^127\./) next
+              if (ip ~ /^169\.254\./) next
+              if (ip == "0.0.0.0") next
+              print ip
+              exit
+            }
+          '
     )"
     if [[ -z "${candidate}" ]]; then
       candidate="$(
         run_virsh "${virsh_args[@]}" domifaddr "${vm_name}" --source agent 2>/dev/null \
-          | awk '/ipv4/ {sub(/\/.*/, "", $4); print $4; exit}'
+          | awk '
+              /ipv4/ {
+                ip=$4
+                sub(/\/.*/, "", ip)
+                if (ip ~ /^127\./) next
+                if (ip ~ /^169\.254\./) next
+                if (ip == "0.0.0.0") next
+                print ip
+                exit
+              }
+            '
+      )"
+    fi
+    if [[ -z "${candidate}" ]]; then
+      candidate="$(
+        run_virsh "${virsh_args[@]}" domifaddr "${vm_name}" --source arp 2>/dev/null \
+          | awk '
+              /ipv4/ {
+                ip=$4
+                sub(/\/.*/, "", ip)
+                if (ip ~ /^127\./) next
+                if (ip ~ /^169\.254\./) next
+                if (ip == "0.0.0.0") next
+                print ip
+                exit
+              }
+            '
       )"
     fi
     if [[ -n "${candidate}" ]]; then
@@ -712,6 +803,27 @@ wait_for_ssh() {
   return 1
 }
 
+collect_ssh_timeout_diagnostics() {
+  local ip="$1"
+  local -a opts
+
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+
+  log "Collecting SSH timeout diagnostics for ${ip}"
+
+  run_virsh "${virsh_args[@]}" domifaddr "${vm_name}" --source lease \
+    > "${run_dir}/domifaddr-lease.log" 2>&1 || true
+  run_virsh "${virsh_args[@]}" domifaddr "${vm_name}" --source agent \
+    > "${run_dir}/domifaddr-agent.log" 2>&1 || true
+  run_virsh "${virsh_args[@]}" domifaddr "${vm_name}" --source arp \
+    > "${run_dir}/domifaddr-arp.log" 2>&1 || true
+
+  ssh -vv "${opts[@]}" "${ssh_user}@${ip}" 'true' \
+    > "${run_dir}/ssh-debug.log" 2>&1 || true
+
+  log "SSH timeout diagnostics written under ${run_dir} (domifaddr-*.log, ssh-debug.log)"
+}
+
 collect_remote_logs() {
   local -a opts
   local ip="$1"
@@ -734,6 +846,418 @@ collect_remote_logs() {
   ssh "${opts[@]}" "${ssh_user}@${ip}" \
     'rpm -q hyprland hyprland-uwsm xdg-desktop-portal-hyprland uwsm' \
     > "${run_dir}/rpm-q.log" 2>&1 || true
+
+  if [[ "${smoke_mode}" == "graphical" ]]; then
+    ssh "${opts[@]}" "${ssh_user}@${ip}" \
+      'cat ~/.local/state/hyprland-kvm-smoke.log' \
+      > "${run_dir}/hyprland-kvm-smoke.log" 2>&1 || true
+
+    ssh "${opts[@]}" "${ssh_user}@${ip}" \
+      'loginctl list-sessions --no-legend' \
+      > "${run_dir}/loginctl-sessions.log" 2>&1 || true
+
+    ssh "${opts[@]}" "${ssh_user}@${ip}" \
+      'pgrep -a Hyprland' \
+      > "${run_dir}/pgrep-hyprland.log" 2>&1 || true
+
+    ssh "${opts[@]}" "${ssh_user}@${ip}" \
+      'pgrep -a kitty || true' \
+      > "${run_dir}/pgrep-kitty.log" 2>&1 || true
+
+    ssh "${opts[@]}" "${ssh_user}@${ip}" \
+      'pgrep -a swaybg || true' \
+      > "${run_dir}/pgrep-swaybg.log" 2>&1 || true
+
+    if [[ "${graphical_session_mode}" == "gdm" ]]; then
+      ssh "${opts[@]}" "${ssh_user}@${ip}" \
+        'sudo journalctl -u gdm -b --no-pager' \
+        > "${run_dir}/journalctl-gdm.log" 2>&1 || true
+
+      ssh "${opts[@]}" "${ssh_user}@${ip}" \
+        "sudo cat /var/lib/AccountsService/users/${ssh_user}" \
+        > "${run_dir}/accountsservice-user.log" 2>&1 || true
+    fi
+
+    capture_vm_screenshot || true
+  fi
+}
+
+capture_vm_screenshot() {
+  [[ "${graphics_mode}" != "none" ]] || return 0
+
+  local shot
+  shot="${run_dir}/vm-screenshot.ppm"
+
+  if run_virsh "${virsh_args[@]}" screenshot "${vm_name}" "${shot}" >/dev/null 2>&1; then
+    if [[ -s "${shot}" ]]; then
+      log "Captured VM screenshot: ${shot}"
+      return 0
+    fi
+    rm -f "${shot}"
+  fi
+
+  log "VM screenshot capture failed or unsupported (non-fatal)"
+  return 0
+}
+
+remote_boot_id() {
+  local -a opts
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+  ssh "${opts[@]}" "${ssh_user}@${vm_ip}" 'cat /proc/sys/kernel/random/boot_id' 2>/dev/null || true
+}
+
+wait_for_new_boot_id() {
+  local old_id="$1"
+  local deadline current
+  deadline=$((SECONDS + timeout_sec))
+
+  while (( SECONDS < deadline )); do
+    current="$(remote_boot_id)"
+    if [[ -n "${current}" && "${current}" != "${old_id}" ]]; then
+      printf '%s\n' "${current}"
+      return 0
+    fi
+    sleep 5
+  done
+
+  return 1
+}
+
+wait_for_hyprland_process() {
+  local deadline
+  local -a opts
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+  deadline=$((SECONDS + 120))
+
+  while (( SECONDS < deadline )); do
+    if ssh "${opts[@]}" "${ssh_user}@${vm_ip}" 'pgrep -x Hyprland >/dev/null' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+
+  return 1
+}
+
+current_hyprland_pid() {
+  local -a opts
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+  ssh "${opts[@]}" "${ssh_user}@${vm_ip}" 'pgrep -xo Hyprland' 2>/dev/null || true
+}
+
+wait_for_hyprland_pid_change() {
+  local old_pid="$1"
+  local deadline current_pid
+
+  deadline=$((SECONDS + timeout_sec))
+  while (( SECONDS < deadline )); do
+    current_pid="$(current_hyprland_pid)"
+    if [[ -n "${current_pid}" && "${current_pid}" != "${old_pid}" ]]; then
+      printf '%s\n' "${current_pid}"
+      return 0
+    fi
+    sleep 5
+  done
+
+  return 1
+}
+
+wait_for_graphical_client_process() {
+  local deadline
+  local -a opts
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+  deadline=$((SECONDS + 120))
+
+  while (( SECONDS < deadline )); do
+    if ssh "${opts[@]}" "${ssh_user}@${vm_ip}" \
+      'pgrep -x kitty >/dev/null || pgrep -x ghostty >/dev/null || pgrep -x foot >/dev/null' \
+      >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+
+  return 1
+}
+
+run_remote_graphical_smoke_tty() {
+  local -a opts
+  local boot_before boot_after
+
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+
+  log "Preparing graphical smoke stage (tty1 autologin + Hyprland autostart)"
+  ssh "${opts[@]}" "${ssh_user}@${vm_ip}" \
+    "sudo bash -s -- '${ssh_user}'" \
+    >"${run_dir}/graphical-prepare.log" 2>&1 <<'EOF'
+set -euo pipefail
+
+login_user="$1"
+home_dir="$(getent passwd "${login_user}" | cut -d: -f6)"
+uid="$(id -u "${login_user}")"
+
+dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs \
+  kitty swaybg python3
+
+# Optional helper package used by newer Hyprland builds for GUI notifications.
+# This may live in Fedora or a future COPR package set; do not fail if absent.
+dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs hyprland-guiutils \
+  >/dev/null 2>&1 || true
+
+mkdir -p \
+  "${home_dir}/.config/hypr" \
+  "${home_dir}/.local/state" \
+  "${home_dir}/.local/bin" \
+  "${home_dir}/.local/share/kvm-smoke"
+
+python3 - "${home_dir}/.local/share/kvm-smoke/fedora-kvm-smoke.ppm" <<'PY'
+import math
+import sys
+
+out = sys.argv[1]
+w, h = 1280, 720
+
+def clamp(x):
+    return 0 if x < 0 else 255 if x > 255 else int(x)
+
+with open(out, "wb") as f:
+    f.write(f"P6\n{w} {h}\n255\n".encode())
+    for y in range(h):
+        fy = y / (h - 1)
+        for x in range(w):
+            fx = x / (w - 1)
+            # Dark Fedora-like blue gradient base
+            r = 10 + 20 * (1 - fy) + 8 * math.sin(fx * 6.0)
+            g = 24 + 55 * (1 - fy) + 10 * math.sin((fx + fy) * 4.0)
+            b = 52 + 135 * (1 - fy) + 18 * math.cos(fx * 5.0)
+
+            # Soft diagonal glow (Fedora blue accent)
+            dx = fx - 0.72
+            dy = fy - 0.28
+            glow = math.exp(-((dx * dx) / 0.028 + (dy * dy) / 0.05))
+            r += 30 * glow
+            g += 85 * glow
+            b += 175 * glow
+
+            # Secondary darker wave
+            band = 0.5 + 0.5 * math.sin((fx * 3.5 - fy * 5.5) * math.pi)
+            r += 6 * band
+            g += 12 * band
+            b += 20 * band
+
+            # White "infinity-like" ring accent (approximation)
+            cx1, cy1 = 0.42, 0.42
+            cx2, cy2 = 0.58, 0.42
+            scale_x, scale_y = 0.16, 0.11
+            d1 = math.sqrt(((fx - cx1) / scale_x) ** 2 + ((fy - cy1) / scale_y) ** 2)
+            d2 = math.sqrt(((fx - cx2) / scale_x) ** 2 + ((fy - cy2) / scale_y) ** 2)
+            ring = 0.0
+            for d in (d1, d2):
+                ring += math.exp(-((d - 1.0) ** 2) / 0.006)
+            ring = min(ring, 1.2)
+
+            r = r * (1 - 0.18 * ring) + 230 * ring
+            g = g * (1 - 0.18 * ring) + 236 * ring
+            b = b * (1 - 0.18 * ring) + 245 * ring
+
+            f.write(bytes((clamp(r), clamp(g), clamp(b))))
+PY
+
+cat > "${home_dir}/.local/bin/kvm-smoke-launch-visuals.sh" <<'VISUAL'
+#!/usr/bin/env bash
+set -euo pipefail
+
+wall="${HOME}/.local/share/kvm-smoke/fedora-kvm-smoke.ppm"
+
+if command -v swaybg >/dev/null 2>&1 && [[ -f "${wall}" ]]; then
+  pkill -x swaybg >/dev/null 2>&1 || true
+  swaybg -i "${wall}" -m fill >/dev/null 2>&1 &
+fi
+
+sleep 1
+
+if command -v kitty >/dev/null 2>&1; then
+  kitty --title "KVM Smoke" sh -lc '
+    printf "Hyprland graphical smoke test\\n"
+    printf "COPR: %s/%s\\n" "${COPR_OWNER:-mineiro}" "${COPR_PROJECT:-hyprland}"
+    printf "\\nThis terminal was auto-launched by the KVM graphical smoke stage.\\n"
+    exec bash
+  ' >/dev/null 2>&1 &
+elif command -v foot >/dev/null 2>&1; then
+  foot sh -lc 'printf "Hyprland graphical smoke test\\n"; exec bash' >/dev/null 2>&1 &
+fi
+VISUAL
+
+chmod 0755 "${home_dir}/.local/bin/kvm-smoke-launch-visuals.sh"
+
+cat > "${home_dir}/.config/hypr/kvm-smoke.conf" <<'CFG'
+# Prefer a visibly roomy VM mode for graphical smoke runs, with a wildcard
+# fallback in case the virtual output advertises different modes.
+monitor=Virtual-1,1920x1080@60,auto,1
+monitor=,preferred,auto,1
+general {
+  gaps_in = 6
+  gaps_out = 10
+  border_size = 2
+  col.active_border = rgb(8aadf4)
+  col.inactive_border = rgb(3a4a66)
+}
+decoration {
+  rounding = 6
+}
+misc {
+  disable_hyprland_logo = true
+  disable_splash_rendering = true
+}
+exec-once = ${HOME}/.local/bin/kvm-smoke-launch-visuals.sh
+CFG
+
+chown -R "${login_user}:${login_user}" "${home_dir}/.config" "${home_dir}/.local"
+
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<GETTY
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --noissue --autologin ${login_user} %I \$TERM
+Type=idle
+GETTY
+
+marker_begin="# KVM_SMOKE_HYPRLAND_AUTOSTART_BEGIN"
+marker_end="# KVM_SMOKE_HYPRLAND_AUTOSTART_END"
+bash_profile="${home_dir}/.bash_profile"
+touch "${bash_profile}"
+
+if ! grep -Fq "${marker_begin}" "${bash_profile}"; then
+  cat >> "${bash_profile}" <<'BASHRC'
+# KVM_SMOKE_HYPRLAND_AUTOSTART_BEGIN
+if [[ -z "${SSH_TTY:-}" ]] && [[ "$(tty 2>/dev/null || true)" == "/dev/tty1" ]]; then
+  export WLR_RENDERER_ALLOW_SOFTWARE=1
+  export LIBSEAT_BACKEND=logind
+  export XDG_CURRENT_DESKTOP=Hyprland
+  export XDG_SESSION_TYPE=wayland
+  # Prefer the distro wrapper when present, but keep a direct Hyprland fallback
+  # because this is a controlled smoke-testing environment.
+  if command -v start-hyprland >/dev/null 2>&1; then
+    exec start-hyprland --config "${HOME}/.config/hypr/kvm-smoke.conf" \
+      > "${HOME}/.local/state/hyprland-kvm-smoke.log" 2>&1 \
+      || exec Hyprland --config "${HOME}/.config/hypr/kvm-smoke.conf" \
+      > "${HOME}/.local/state/hyprland-kvm-smoke.log" 2>&1
+  else
+    exec Hyprland --config "${HOME}/.config/hypr/kvm-smoke.conf" \
+      > "${HOME}/.local/state/hyprland-kvm-smoke.log" 2>&1
+  fi
+fi
+# KVM_SMOKE_HYPRLAND_AUTOSTART_END
+BASHRC
+fi
+
+chown "${login_user}:${login_user}" "${bash_profile}"
+
+systemctl daemon-reload
+systemctl restart getty@tty1.service || true
+loginctl enable-linger "${login_user}" || true
+
+echo "${uid}" > /var/tmp/kvm-smoke-login-user-uid
+EOF
+
+  boot_before="$(remote_boot_id)"
+  printf '%s\n' "${boot_before}" > "${run_dir}/boot-id-before.txt"
+  [[ -n "${boot_before}" ]] || die "Could not read guest boot ID before graphical reboot"
+
+  log "Rebooting guest to trigger tty1 graphical smoke login"
+  ssh "${opts[@]}" "${ssh_user}@${vm_ip}" 'sudo systemctl reboot' >/dev/null 2>&1 || true
+
+  log "Waiting for guest to come back with a new boot ID"
+  boot_after="$(wait_for_new_boot_id "${boot_before}")" || die "Timed out waiting for guest reboot during graphical smoke stage"
+  printf '%s\n' "${boot_after}" > "${run_dir}/boot-id-after.txt"
+  log "Guest rebooted (boot ID changed)"
+
+  log "Waiting for Hyprland process after tty1 auto-login"
+  wait_for_hyprland_process || die "Hyprland did not start within timeout during graphical smoke stage"
+
+  log "Waiting for a visible terminal client (kitty/ghostty/foot)"
+  wait_for_graphical_client_process || die "No graphical terminal client started within timeout during graphical smoke stage"
+
+  log "Graphical smoke stage detected Hyprland and a visible terminal client"
+}
+
+run_remote_graphical_smoke_gdm() {
+  local -a opts
+  local boot_before boot_after
+  local hypr_pid_before
+
+  mapfile -t opts < <(ssh_opts "${ssh_key}")
+
+  log "Preparing graphical smoke stage (GDM auto-login + default Hyprland session)"
+  ssh "${opts[@]}" "${ssh_user}@${vm_ip}" \
+    "sudo bash -s -- '${ssh_user}'" \
+    >"${run_dir}/graphical-prepare.log" 2>&1 <<'EOF'
+set -euo pipefail
+
+login_user="$1"
+
+dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs gdm kitty
+
+# Optional helper package used by newer Hyprland builds for GUI notifications.
+dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs hyprland-guiutils \
+  >/dev/null 2>&1 || true
+
+mkdir -p /etc/gdm
+cat > /etc/gdm/custom.conf <<GDMCONF
+[daemon]
+AutomaticLoginEnable=True
+AutomaticLogin=${login_user}
+WaylandEnable=true
+GDMCONF
+
+mkdir -p /var/lib/AccountsService/users
+cat > /var/lib/AccountsService/users/${login_user} <<ACCOUNTS
+[User]
+SystemAccount=false
+Session=hyprland
+XSession=hyprland
+ACCOUNTS
+chmod 0644 /var/lib/AccountsService/users/${login_user}
+
+systemctl enable gdm.service
+systemctl set-default graphical.target
+loginctl enable-linger "${login_user}" || true
+EOF
+
+  boot_before="$(remote_boot_id)"
+  printf '%s\n' "${boot_before}" > "${run_dir}/boot-id-before.txt"
+  [[ -n "${boot_before}" ]] || die "Could not read guest boot ID before GDM reboot"
+
+  log "Rebooting guest to enter GDM-managed graphical target"
+  ssh "${opts[@]}" "${ssh_user}@${vm_ip}" 'sudo systemctl reboot' >/dev/null 2>&1 || true
+
+  log "Waiting for guest to come back with a new boot ID"
+  boot_after="$(wait_for_new_boot_id "${boot_before}")" || die "Timed out waiting for guest reboot during GDM graphical smoke stage"
+  printf '%s\n' "${boot_after}" > "${run_dir}/boot-id-after.txt"
+  log "Guest rebooted (boot ID changed)"
+
+  log "Waiting for Hyprland process after GDM auto-login"
+  wait_for_hyprland_process || die "Hyprland did not start within timeout via GDM session"
+
+  hypr_pid_before="$(current_hyprland_pid)"
+  printf '%s\n' "${hypr_pid_before}" > "${run_dir}/hyprland-pid-gdm.txt"
+  [[ -n "${hypr_pid_before}" ]] || die "Could not determine Hyprland PID after initial GDM login"
+  log "Detected Hyprland PID after GDM login: ${hypr_pid_before}"
+  log "Graphical smoke stage detected Hyprland through GDM auto-login"
+}
+
+run_remote_graphical_smoke() {
+  case "${graphical_session_mode}" in
+    gdm)
+      run_remote_graphical_smoke_gdm
+      ;;
+    tty)
+      run_remote_graphical_smoke_tty
+      ;;
+    *)
+      die "Unsupported graphical session mode: ${graphical_session_mode}"
+      ;;
+  esac
 }
 
 write_cloud_init() {
@@ -784,7 +1308,17 @@ create_seed_iso() {
 }
 
 create_vm() {
-  local -a args
+  local -a args fallback_args
+  local effective_graphics_mode
+  local create_vm_output
+  local accel_requested=0
+  effective_graphics_mode="${graphics_mode}"
+
+  if [[ "${smoke_mode}" == "graphical" && "${graphics_explicit}" -eq 0 && "${graphics_mode}" == "spice" ]]; then
+    effective_graphics_mode="spice,gl.enable=yes"
+    accel_requested=1
+  fi
+
   args=(
     "${virt_install_args[@]}"
     --name "${vm_name}"
@@ -792,19 +1326,61 @@ create_vm() {
     --vcpus "${vcpus}"
     --import
     --noautoconsole
-    --graphics "${graphics_mode}"
+    --graphics "${effective_graphics_mode}"
     --osinfo "${osinfo_value}"
     --network "network=${libvirt_network},model=virtio"
     --disk "path=${overlay_img},format=qcow2,bus=virtio"
     --disk "path=${seed_img},device=cdrom"
   )
 
+  if [[ "${smoke_mode}" == "graphical" ]]; then
+    # Prefer virtio-gpu + virgl for accelerated rendering in graphical smoke
+    # runs. Hyprland can still fall back to software rendering if unavailable.
+    if [[ "${accel_requested}" -eq 1 ]]; then
+      args+=(--video "model.type=virtio,model.acceleration.accel3d=yes")
+    else
+      args+=(--video "model.type=virtio")
+    fi
+  fi
+
   if [[ "${graphics_mode}" == "none" ]]; then
     args+=(--serial pty --console pty,target_type=serial)
   fi
 
   log "Creating VM ${vm_name}"
-  run_virt_install "${args[@]}"
+  if ! create_vm_output="$(run_virt_install "${args[@]}" 2>&1)"; then
+    if [[ "${accel_requested}" -eq 1 ]] && grep -Eqi 'eglInitialize failed|render node init failed|virgl|opengl is not available' <<<"${create_vm_output}"; then
+      printf '%s\n' "${create_vm_output}" > "${run_dir}/virt-install-accelerated-failure.log"
+      log "Host GL/virgl acceleration unavailable; retrying graphical VM without 3D acceleration"
+      log "Saved accelerated virt-install failure output to ${run_dir}/virt-install-accelerated-failure.log"
+
+      fallback_args=(
+        "${virt_install_args[@]}"
+        --name "${vm_name}"
+        --memory "${memory_mib}"
+        --vcpus "${vcpus}"
+        --import
+        --noautoconsole
+        --graphics "spice"
+        --osinfo "${osinfo_value}"
+        --network "network=${libvirt_network},model=virtio"
+        --disk "path=${overlay_img},format=qcow2,bus=virtio"
+        --disk "path=${seed_img},device=cdrom"
+        --video "model.type=virtio"
+      )
+
+      if ! create_vm_output="$(run_virt_install "${fallback_args[@]}" 2>&1)"; then
+        printf '%s\n' "${create_vm_output}" >&2
+        return 1
+      fi
+      printf '%s\n' "${create_vm_output}" > "${run_dir}/virt-install-fallback.log"
+    else
+      printf '%s\n' "${create_vm_output}" >&2
+      return 1
+    fi
+  else
+    printf '%s\n' "${create_vm_output}" > "${run_dir}/virt-install.log"
+  fi
   vm_created=1
 }
 
@@ -814,7 +1390,10 @@ wait_for_boot() {
   log "VM IP address: ${vm_ip}"
 
   log "Waiting for SSH on ${ssh_user}@${vm_ip}"
-  wait_for_ssh "${vm_ip}" || die "Timed out waiting for SSH"
+  if ! wait_for_ssh "${vm_ip}"; then
+    collect_ssh_timeout_diagnostics "${vm_ip}" || true
+    die "Timed out waiting for SSH on ${ssh_user}@${vm_ip} (see ssh-debug.log and domifaddr-*.log in ${run_dir})"
+  fi
 
   local -a opts
   mapfile -t opts < <(ssh_opts "${ssh_key}")
@@ -902,6 +1481,7 @@ main() {
   if [[ -z "${libvirt_uri}" ]]; then
     libvirt_uri="$(default_libvirt_uri)"
   fi
+  validate_and_apply_smoke_mode_defaults
   apply_default_workdir_for_libvirt
   enable_sudo_for_system_libvirt_if_available
   init_libvirt_arg_arrays
@@ -910,6 +1490,10 @@ main() {
 
   log "Run directory: ${run_dir}"
   log "Workdir: ${workdir}"
+  log "Smoke mode: ${smoke_mode}"
+  if [[ "${smoke_mode}" == "graphical" ]]; then
+    log "Graphical session mode: ${graphical_session_mode}"
+  fi
   log "Target COPR: ${copr_owner}/${copr_project}"
   log "VM name: ${vm_name}"
   log "Libvirt URI: ${libvirt_uri}"
@@ -931,9 +1515,12 @@ main() {
   create_vm
   wait_for_boot
   run_remote_smoke
+  if [[ "${smoke_mode}" == "graphical" ]]; then
+    run_remote_graphical_smoke
+  fi
   collect_remote_logs "${vm_ip}"
 
-  log "Headless KVM smoke test passed"
+  log "${smoke_mode^} KVM smoke test passed"
 }
 
 main "$@"
