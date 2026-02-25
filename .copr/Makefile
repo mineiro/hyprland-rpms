@@ -13,7 +13,7 @@ prepare:
 srpm: prepare
 	@test -n "$(spec)" || { echo "COPR did not pass 'spec'"; exit 1; }
 	@test -n "$(outdir)" || { echo "COPR did not pass 'outdir'"; exit 1; }
-	spectool -g -C . -R "./$(specfile)"
+	spectool -g -R "./$(specfile)"
 	@if ls ./patches/*.patch >/dev/null 2>&1; then \
 		cp -f ./patches/*.patch ./; \
 	fi
@@ -27,7 +27,8 @@ srpm: prepare
 		fi; \
 		vendor_name="$$(rpmspec -P "./$(specfile)" | awk '/^Source1:[[:space:]]*/ { print $$2; exit }' | xargs basename)"; \
 		src0_name="$$(rpmspec -P "./$(specfile)" | awk '/^Source0:[[:space:]]*/ { print $$2; exit }' | xargs basename)"; \
-		tmpdir="$$(mktemp -d)"; \
+			tmpdir="$$(mktemp -d)"; \
+			rpm_sourcedir="$$(rpm --eval '%{_sourcedir}' 2>/dev/null || true)"; \
 			srcdir=""; \
 			src0_path="./$$src0_name"; \
 			trap 'rm -rf "$$tmpdir"' EXIT; \
@@ -36,6 +37,16 @@ srpm: prepare
 			fi; \
 			if [ ! -f "$$src0_path" ] && [ -f "./SOURCES/$$src0_name" ]; then \
 				src0_path="./SOURCES/$$src0_name"; \
+			fi; \
+			if [ ! -f "$$src0_path" ] && [ -n "$$rpm_sourcedir" ] && [ -f "$$rpm_sourcedir/$$src0_name" ]; then \
+				src0_path="$$rpm_sourcedir/$$src0_name"; \
+			fi; \
+			if [ ! -f "$$src0_path" ] && [ -f "$$HOME/rpmbuild/SOURCES/$$src0_name" ]; then \
+				src0_path="$$HOME/rpmbuild/SOURCES/$$src0_name"; \
+			fi; \
+			if [ "$$src0_path" != "./$$src0_name" ]; then \
+				cp -f "$$src0_path" "./$$src0_name"; \
+				src0_path="./$$src0_name"; \
 			fi; \
 			[ -f "$$src0_path" ] || { echo "Downloaded Source0 not found for vendoring: $$src0_name"; exit 1; }; \
 			tar -xf "$$src0_path" -C "$$tmpdir"; \
