@@ -1,0 +1,37 @@
+--- a/src/element/image/Image.cpp
++++ b/src/element/image/Image.cpp
+@@ -10,6 +10,8 @@
+ 
+ #include "../Element.hpp"
+ 
++#include <type_traits>
++
+ using namespace Hyprtoolkit;
+ 
+ SP<CImageElement> CImageElement::create(const SImageData& data) {
+@@ -85,7 +87,14 @@
+ 
+     if (!m_impl->data.data.empty()) {
+         const auto SIZE  = m_impl->preferredSvgSize();
+-        m_impl->resource = makeAtomicShared<CImageResource>(m_impl->data.data, SIZE);
++        if constexpr (std::is_constructible_v<CImageResource, std::vector<uint8_t>&, const Hyprutils::Math::Vector2D&>) {
++            m_impl->resource = makeAtomicShared<CImageResource>(m_impl->data.data, SIZE);
++        } else {
++            // Compatibility fallback for older Hyprgraphics APIs that only
++            // provide the SVG-string constructor. Preserve embedded NUL bytes.
++            const std::string SVGDATA{reinterpret_cast<const char*>(m_impl->data.data.data()), m_impl->data.data.size()};
++            m_impl->resource = makeAtomicShared<CImageResource>(SVGDATA, SIZE);
++        }
+         m_impl->lastData = m_impl->data.data.data();
+     } else if (!m_impl->data.icon) {
+         m_impl->resource = makeAtomicShared<CImageResource>(m_impl->data.path);
+--- a/src/palette/ConfigManager.cpp
++++ b/src/palette/ConfigManager.cpp
+@@ -8,6 +8,7 @@
+ #include <glob.h>
+ #include <filesystem>
+ #include <cstring>
++#include <limits.h>
+ 
+ using namespace Hyprtoolkit;
+ 

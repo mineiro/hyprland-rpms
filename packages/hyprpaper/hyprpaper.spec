@@ -2,13 +2,12 @@
 # monorepo style. Re-verify dependency floors/patches against current Fedora and
 # upstream before first COPR publish.
 #
-# Version pin note (current stack): `0.8.x` moved to a `hyprtoolkit`-based
-# dependency path that expects newer Hyprgraphics APIs than the current Hyprland
-# `0.53.x` validation stack in this repo. Keep `hyprpaper` on the latest known
-# compatible line for now and revisit when the core stack is upgraded.
+# Track the latest upstream release when possible. `0.8.x` depends on
+# `hyprtoolkit`, so keep `hyprtoolkit` packaged and version floors aligned with
+# the validated Hypr stack to avoid mixed-ABI builddep resolution in COPR.
 
 Name:           hyprpaper
-Version:        0.7.6
+Version:        0.8.3
 Release:        %autorelease
 Summary:        Blazing fast Wayland wallpaper utility with IPC controls
 
@@ -26,13 +25,16 @@ BuildRequires:  gcc-c++
 BuildRequires:  systemd-rpm-macros
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(glesv2)
-BuildRequires:  pkgconfig(hyprgraphics) >= 0.4.0
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.3
 BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
+BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libmagic)
 BuildRequires:  pkgconfig(pango)
 BuildRequires:  pkgconfig(pangocairo)
+BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(wayland-protocols)
 

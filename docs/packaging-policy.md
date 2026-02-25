@@ -47,7 +47,8 @@ Suggested next ecosystem packages after the core chain stabilizes:
 
 1. `hyprlock`
 2. `hypridle`
-3. `hyprpaper`
+3. `hyprtoolkit`
+4. `hyprpaper` (latest `0.8.x` path depends on `hyprtoolkit`)
 
 ## What to avoid (fresh-start guardrails)
 
