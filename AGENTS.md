@@ -66,17 +66,24 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- `packages/uwsm/` has been added (ported from `solopasha/hyprlandRPM` spec baseline, adapted to this monorepo style).
 
 Important:
 
 - `packages/hyprland/hyprland.spec` is buildable in local `mock --chain` for Fedora 43/44/rawhide (`0.53.3`) with the packaged local dependency stack (`hyprwayland-scanner`, `hyprutils`, `hyprlang`, `hyprcursor`, `hyprgraphics`, `aquamarine`, `hyprwire`, `hyprland-protocols`, `glaze`).
+- `packages/xdg-desktop-portal-hyprland/xdg-desktop-portal-hyprland.spec` has been re-verified via local full-stack `mock --chain` on Fedora 43/44/rawhide against the Hyprland `0.53.3` stack.
+- COPR onboarding is complete in `mineiro/hyprland` (after correcting an initial typoed project name `hyperland`):
+  - SCM package entries created for the validated stack plus `uwsm`
+  - all target builds succeeded on Fedora 43/44/rawhide
+- `repoclosure` now passes for Fedora 43/44/rawhide after adding `uwsm` (required by `hyprland-uwsm` subpackage runtime dependency).
+- Clean standalone `mock --rebuild` (non-chain) has been re-validated for `hyprland` and `xdg-desktop-portal-hyprland` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repos (`mock --addrepo ...`).
+
 - TODOs remain for:
-  - clean standalone `mock --rebuild` validation (without local chain) when dependent versions land in repos/COPR
+  - containerized install/smoke-test automation for Fedora 43/44/rawhide against COPR
+  - optional graphical runtime validation (VM-based Hyprland startup/session checks)
   - final dependency floors and version-specific conditionals
   - final packaging polish/review for bundled components (for example, current `xdg-desktop-portal-hyprland` spec carries bundled `sdbus-cpp`)
   - bundling declarations if required by upstream release contents
-
-- `packages/xdg-desktop-portal-hyprland/xdg-desktop-portal-hyprland.spec` has been re-verified via local full-stack `mock --chain` on Fedora 43/44/rawhide against the Hyprland `0.53.3` stack, but still needs final Fedora packaging-policy review before publishing.
 
 ## COPR strategy (agreed)
 
@@ -90,6 +97,10 @@ Per package entry:
 - Subdirectory: `packages/<pkgname>`
 - Spec file: `<pkgname>.spec`
 - Build SRPM with: `make_srpm`
+
+Active project:
+
+- `mineiro/hyprland` (current canonical COPR project; an earlier typoed project `mineiro/hyperland` was used during initial onboarding/testing)
 
 Auto-rebuild/webhooks:
 
@@ -112,6 +123,10 @@ Start with foundational libraries before `hyprland`:
 9. `glaze` (pin to compatible `6.x` for Hyprland `0.53.x`)
 10. `hyprland`
 11. `xdg-desktop-portal-hyprland`
+
+Additional runtime/support package now included in COPR:
+
+12. `uwsm` (required so `hyprland-uwsm` is repo-installable and repoclosure passes)
 
 This order is documented in `docs/packaging-policy.md`.
 
@@ -138,20 +153,21 @@ Build result legend (per Fedora columns):
 
 | Package | Role | Priority | Spec status | F43 mock | F44 mock | Rawhide mock | COPR pkg entry | COPR builds | Notes |
 |---|---|---:|---|---|---|---|---|---|---|
-| `hyprwayland-scanner` | core toolchain | 1 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.4.5`) and mock rebuilds pass on Fedora 43/44/rawhide |
-| `hyprutils` | core library | 2 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.11.0`); Fedora 43/44/rawhide builds revalidated via mock chain while testing `hyprland`/`hyprwire` |
-| `hyprlang` | core library | 3 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.6.8`) and mock rebuilds pass on Fedora 43/44/rawhide |
-| `hyprcursor` | core library | 4 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.1.13`) and mock rebuilds pass on Fedora 43/44/rawhide |
-| `hyprgraphics` | core library | 5 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | Fedora 43/44/rawhide mock chain (`hyprutils -> hyprlang -> hyprgraphics`) passes; clean F43 mock against distro `hyprutils` failed due older dependency version |
-| `aquamarine` | core library | 6 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | Fedora 43/44/rawhide mock chain (`hyprwayland-scanner -> hyprutils -> aquamarine`) passes; clean F43 mock failed on unavailable BuildRequires in distro repos |
-| `hyprwire` | core library/tooling | 7 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.3.0`) and Fedora 43/44/rawhide mock chain rebuilds pass; required by `hyprctl` in Hyprland `0.53.x` |
-| `hyprland-protocols` | protocol definitions | 8 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.7.0`) and Fedora 43/44/rawhide mock chain rebuilds pass |
-| `glaze` | compatibility dependency | 9 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`6.1.0`); pinned to `6.x` for Hyprland `0.53.x` compatibility and Fedora 43/44/rawhide mock chain rebuilds pass |
-| `hyprland` | compositor | 10 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`0.53.3`); Fedora 43/44/rawhide pass via full mock chain including `hyprland-protocols` and `glaze`; `hyprpm` and `start-hyprland` enabled in package output |
-| `xdg-desktop-portal-hyprland` | portal backend | 11 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | local SRPM builds (`1.3.11`); Fedora 43/44/rawhide pass via full mock chain against Hyprland `0.53.3` stack; includes `pkgconfig(libspa-0.2)` and bundled `sdbus-cpp` declaration |
-| `hyprlock` | ecosystem app | 12 | `NS` | `-` | `-` | `-` | `no` | `-` | add after core chain stabilizes |
-| `hypridle` | ecosystem app | 13 | `NS` | `-` | `-` | `-` | `no` | `-` | add after core chain stabilizes |
-| `hyprpaper` | ecosystem app | 14 | `NS` | `-` | `-` | `-` | `no` | `-` | optional early package, lower risk than Hyprland |
+| `hyprwayland-scanner` | core toolchain | 1 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.4.5`) and mock rebuilds pass on Fedora 43/44/rawhide; COPR SCM entry/builds passing in `mineiro/hyprland` |
+| `hyprutils` | core library | 2 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.11.0`); Fedora 43/44/rawhide builds revalidated via mock chain while testing `hyprland`/`hyprwire`; COPR builds passing |
+| `hyprlang` | core library | 3 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.6.8`) and mock rebuilds pass on Fedora 43/44/rawhide; rebuilt in COPR against `hyprutils` `0.11.0` ABI |
+| `hyprcursor` | core library | 4 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.1.13`) and mock rebuilds pass on Fedora 43/44/rawhide; COPR builds passing |
+| `hyprgraphics` | core library | 5 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | Fedora 43/44/rawhide mock chain (`hyprutils -> hyprlang -> hyprgraphics`) passes; clean F43 mock against distro `hyprutils` had previously failed due older dependency version |
+| `aquamarine` | core library | 6 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | Fedora 43/44/rawhide mock chain (`hyprwayland-scanner -> hyprutils -> aquamarine`) passes; clean F43 mock had previously failed on unavailable BuildRequires in distro repos |
+| `hyprwire` | core library/tooling | 7 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.3.0`) and Fedora 43/44/rawhide mock chain rebuilds pass; COPR build verified requiring `libhyprutils.so.10` |
+| `hyprland-protocols` | protocol definitions | 8 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.7.0`) and Fedora 43/44/rawhide mock chain rebuilds pass; COPR builds passing |
+| `glaze` | compatibility dependency | 9 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`6.1.0`); pinned to `6.x` for Hyprland `0.53.x` compatibility and Fedora 43/44/rawhide mock chain rebuilds pass; COPR builds passing |
+| `hyprland` | compositor | 10 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.53.3`); full mock chain pass on Fedora 43/44/rawhide; clean standalone `mock --rebuild` also revalidated on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo; `hyprpm`/`start-hyprland`/`hyprland-uwsm` in package output |
+| `xdg-desktop-portal-hyprland` | portal backend | 11 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`1.3.11`); full mock chain pass on Fedora 43/44/rawhide; clean standalone `mock --rebuild` also revalidated on Fedora 43/44/rawhide via `mineiro/hyprland`; includes `pkgconfig(libspa-0.2)` and bundled `sdbus-cpp` declaration |
+| `uwsm` | session manager/runtime dependency | 12 | `COPR` | `-` | `-` | `-` | `yes` | `ok` | added to satisfy `hyprland-uwsm` runtime dependency; COPR builds pass on Fedora 43/44/rawhide; repoclosure passes after publishing |
+| `hyprlock` | ecosystem app | 13 | `NS` | `-` | `-` | `-` | `no` | `-` | add after core chain stabilizes |
+| `hypridle` | ecosystem app | 14 | `NS` | `-` | `-` | `-` | `no` | `-` | add after core chain stabilizes |
+| `hyprpaper` | ecosystem app | 15 | `NS` | `-` | `-` | `-` | `no` | `-` | optional early package, lower risk than Hyprland |
 
 Recommended usage:
 
@@ -162,11 +178,11 @@ Recommended usage:
 
 ## Suggested next steps (carry-over)
 
-1. Create COPR project and add SCM package entries for the validated chain (`hyprwayland-scanner`, `hyprutils`, `hyprlang`, `hyprcursor`, `hyprgraphics`, `aquamarine`, `hyprwire`, `hyprland-protocols`, `glaze`, `hyprland`, `xdg-desktop-portal-hyprland`).
-2. Run COPR builds in dependency order, then run repoclosure against the COPR repos after the first successful batch.
-3. Re-test `hyprland` and `xdg-desktop-portal-hyprland` with clean standalone `mock --rebuild` once the dependent versions are available through COPR-enabled repos (not only local chains).
+1. Automate containerized install/smoke tests (Fedora 43/44/rawhide) against `mineiro/hyprland` for at least `hyprland`, `xdg-desktop-portal-hyprland`, and `uwsm`.
+2. Optionally add VM-based graphical validation (local/libvirt-first) to verify a Hyprland session can start with `uwsm`; treat this as a separate, slower validation stage.
+3. Update docs/tracking (`AGENTS.md` package matrix, COPR notes, and any other docs) to reflect the completed COPR onboarding, `uwsm` addition, repoclosure pass, and clean standalone mock rebuild validation.
 4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland` (`sdbus-cpp`) and document the policy decision in the spec/comments.
-5. Add upstream version bump automation only after manual workflow is stable.
+5. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
 
 ## Working conventions for future edits
 
@@ -214,4 +230,4 @@ When resuming, start by reading:
 
 Primary near-term task:
 
-- The local dependency chain now builds through `xdg-desktop-portal-hyprland` in `mock --chain` for Fedora 43/44/rawhide; next focus is COPR onboarding/build-order validation and clean non-chain rebuilds where practical.
+- Automate post-build smoke tests in clean Fedora 43/44/rawhide containers against `mineiro/hyprland`, and optionally prototype VM-based graphical validation for Hyprland/`uwsm` sessions.
