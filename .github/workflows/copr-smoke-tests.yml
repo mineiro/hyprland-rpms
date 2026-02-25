@@ -1,0 +1,34 @@
+name: COPR Smoke Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '40 9 * * *'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora_version:
+          - "43"
+          - "44"
+          - rawhide
+    container:
+      image: registry.fedoraproject.org/fedora:${{ matrix.fedora_version }}
+    env:
+      COPR_OWNER: ${{ vars.COPR_OWNER }}
+      COPR_PROJECT: ${{ vars.COPR_PROJECT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate repo variables
+        run: |
+          test -n "${COPR_OWNER}" || { echo "Set repository variable COPR_OWNER"; exit 1; }
+          test -n "${COPR_PROJECT}" || { echo "Set repository variable COPR_PROJECT"; exit 1; }
+
+      - name: Run COPR smoke test
+        run: |
+          bash ./scripts/copr-smoke-tests.sh --inside-container
+

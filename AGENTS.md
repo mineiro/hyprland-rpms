@@ -77,9 +77,15 @@ Important:
   - all target builds succeeded on Fedora 43/44/rawhide
 - `repoclosure` now passes for Fedora 43/44/rawhide after adding `uwsm` (required by `hyprland-uwsm` subpackage runtime dependency).
 - Clean standalone `mock --rebuild` (non-chain) has been re-validated for `hyprland` and `xdg-desktop-portal-hyprland` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repos (`mock --addrepo ...`).
+- Container smoke-test automation has been drafted and locally validated:
+  - `scripts/copr-smoke-tests.sh` (Podman wrapper + in-container checks)
+  - `.github/workflows/copr-smoke-tests.yml` (Fedora 43/44/rawhide matrix using `COPR_OWNER`/`COPR_PROJECT`)
+- Local KVM headless smoke-test harness has been drafted for the next validation tier:
+  - `scripts/kvm-smoke-headless.sh` (cloud image + cloud-init + SSH checks + log collection)
 
 - TODOs remain for:
-  - containerized install/smoke-test automation for Fedora 43/44/rawhide against COPR
+  - wire/validate the container smoke-test workflow in CI and tune assertions as needed
+  - run and iterate the local KVM headless smoke-test harness on libvirt/KVM
   - optional graphical runtime validation (VM-based Hyprland startup/session checks)
   - final dependency floors and version-specific conditionals
   - final packaging polish/review for bundled components (for example, current `xdg-desktop-portal-hyprland` spec carries bundled `sdbus-cpp`)
@@ -176,13 +182,28 @@ Recommended usage:
 3. Flip `COPR pkg entry` to `yes` only after the SCM package entry is created
 4. Mark `COPR builds` as `ok/fail` per latest build result and keep failure reasons in `Notes`
 
+## Validation strategy (updated)
+
+Use a staged validation approach instead of a single "smoke test":
+
+1. `CI container smoke` (fast, blocking)
+   - Validate COPR repo metadata, dependency resolution, package installability, file placement, and basic CLI presence in clean Fedora 43/44/rawhide containers.
+   - Primary tooling: `scripts/copr-smoke-tests.sh` and `.github/workflows/copr-smoke-tests.yml`.
+2. `Local KVM headless` (slower, realistic system integration)
+   - Validate a full Fedora VM with `systemd`/`logind`, package installation, user-unit file presence, and log collection (`journalctl`) for failures.
+   - Primary tooling: `scripts/kvm-smoke-headless.sh` (draft harness).
+3. `Local KVM graphical` (manual first, later automated)
+   - Validate actual Hyprland session startup/runtime behavior (preferably libvirt/KVM first, then optionally real hardware/self-hosted systems for deeper confidence).
+   - Treat this as a separate stage from packaging/install smoke tests.
+
 ## Suggested next steps (carry-over)
 
 1. Automate containerized install/smoke tests (Fedora 43/44/rawhide) against `mineiro/hyprland` for at least `hyprland`, `xdg-desktop-portal-hyprland`, and `uwsm`.
-2. Optionally add VM-based graphical validation (local/libvirt-first) to verify a Hyprland session can start with `uwsm`; treat this as a separate, slower validation stage.
-3. Update docs/tracking (`AGENTS.md` package matrix, COPR notes, and any other docs) to reflect the completed COPR onboarding, `uwsm` addition, repoclosure pass, and clean standalone mock rebuild validation.
-4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland` (`sdbus-cpp`) and document the policy decision in the spec/comments.
-5. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
+2. Add/run local KVM headless smoke tests (libvirt-first) using Fedora cloud images, then iterate assertions/log collection based on real failures.
+3. Optionally add VM-based graphical validation (local/libvirt-first) to verify a Hyprland session can start with `uwsm`; treat this as a separate, slower validation stage.
+4. Update docs/tracking (`AGENTS.md` package matrix, COPR notes, and any other docs) to reflect the completed COPR onboarding, `uwsm` addition, repoclosure pass, clean standalone mock rebuild validation, and smoke-test automation.
+5. Review bundling/unbundling options for `xdg-desktop-portal-hyprland` (`sdbus-cpp`) and document the policy decision in the spec/comments.
+6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
 
 ## Working conventions for future edits
 
@@ -219,6 +240,18 @@ Scaffold a new package:
 ./scripts/new-package.sh hyprlock https://github.com/hyprwm/hyprlock.git https://github.com/hyprwm/hyprlock/releases
 ```
 
+Run container smoke tests against COPR (Fedora 43/44/rawhide):
+
+```bash
+./scripts/copr-smoke-tests.sh mineiro hyprland
+```
+
+Run draft local KVM headless smoke test (requires libvirt/KVM + Fedora cloud image):
+
+```bash
+./scripts/kvm-smoke-headless.sh --owner mineiro --project hyprland --base-image /path/to/Fedora-Cloud-Base.qcow2 --release 44
+```
+
 ## Notes for continuation
 
 When resuming, start by reading:
@@ -230,4 +263,4 @@ When resuming, start by reading:
 
 Primary near-term task:
 
-- Automate post-build smoke tests in clean Fedora 43/44/rawhide containers against `mineiro/hyprland`, and optionally prototype VM-based graphical validation for Hyprland/`uwsm` sessions.
+- Keep the container smoke-test path (`scripts/copr-smoke-tests.sh` + CI workflow) as the fast baseline, and prototype/iterate the local libvirt/KVM headless smoke-test stage before moving on to graphical VM validation for Hyprland/`uwsm` sessions.
