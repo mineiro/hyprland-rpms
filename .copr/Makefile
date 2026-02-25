@@ -13,7 +13,7 @@ prepare:
 srpm: prepare
 	@test -n "$(spec)" || { echo "COPR did not pass 'spec'"; exit 1; }
 	@test -n "$(outdir)" || { echo "COPR did not pass 'outdir'"; exit 1; }
-	spectool -g -R "./$(specfile)"
+	spectool -g -C . -R "./$(specfile)"
 	@if ls ./patches/*.patch >/dev/null 2>&1; then \
 		cp -f ./patches/*.patch ./; \
 	fi
@@ -28,9 +28,17 @@ srpm: prepare
 		vendor_name="$$(rpmspec -P "./$(specfile)" | awk '/^Source1:[[:space:]]*/ { print $$2; exit }' | xargs basename)"; \
 		src0_name="$$(rpmspec -P "./$(specfile)" | awk '/^Source0:[[:space:]]*/ { print $$2; exit }' | xargs basename)"; \
 		tmpdir="$$(mktemp -d)"; \
-		srcdir=""; \
-		trap 'rm -rf "$$tmpdir"' EXIT; \
-		tar -xf "./$$src0_name" -C "$$tmpdir"; \
+			srcdir=""; \
+			src0_path="./$$src0_name"; \
+			trap 'rm -rf "$$tmpdir"' EXIT; \
+			if [ ! -f "$$src0_path" ] && [ -f "./sources/$$src0_name" ]; then \
+				src0_path="./sources/$$src0_name"; \
+			fi; \
+			if [ ! -f "$$src0_path" ] && [ -f "./SOURCES/$$src0_name" ]; then \
+				src0_path="./SOURCES/$$src0_name"; \
+			fi; \
+			[ -f "$$src0_path" ] || { echo "Downloaded Source0 not found for vendoring: $$src0_name"; exit 1; }; \
+			tar -xf "$$src0_path" -C "$$tmpdir"; \
 		srcdir="$$(find "$$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -1)"; \
 		[ -n "$$srcdir" ] || { echo "Failed to locate extracted source dir for vendoring"; exit 1; }; \
 		( cd "$$srcdir" && cargo vendor --locked vendor >/dev/null ); \
