@@ -98,7 +98,10 @@ Important:
 - `packages/hyprland-guiutils/` has been added at the latest upstream release (`0.2.1`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. This is the upstream successor to `hyprland-qtutils`, so `hyprland-qtutils` packaging is being deferred in favor of `hyprland-guiutils`.
 - `packages/hyprsysteminfo/` has been added at the latest upstream release (`0.1.3`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds; it carries a small Qt6 Wayland private-module detection patch for newer Qt6.
 - `packages/hyprlauncher/` has been added at the latest upstream release (`0.1.5`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds; it carries a small portability patch adding missing POSIX includes (`NAME_MAX`, `read`) required on newer Fedora toolchains.
-- `packages/hyprshot/` has been added at the latest upstream release (`1.3.0`, `Gustash/Hyprshot`) and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repo for dependencies; this is a noarch shell-script package.
+- `packages/hyprshot/` has been added at the latest upstream release (`1.3.0`, `Gustash/Hyprshot`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds; this is a noarch shell-script package.
+- `packages/hyprpwcenter/` has been added at the latest upstream release (`0.1.2`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds.
+- `packages/hyprdim/` has been added at the latest upstream release (`3.0.1`, `donovanglover/hyprdim`) and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide. It uses vendored Rust crates (`Source1`) generated during SRPM creation so builds work offline in mock/COPR.
+- `.copr/Makefile` now conditionally supports Rust vendored-source generation for packages that declare `%cargo_prep` + `Source1`, so COPR SCM `make_srpm` can build offline-capable Rust SRPMs (for example `hyprdim`).
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
@@ -198,7 +201,9 @@ Build result legend (per Fedora columns):
 | `hyprland-guiutils` | ecosystem app (GUI utils) | 22 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.2.1`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; upstream successor to `hyprland-qtutils` |
 | `hyprsysteminfo` | ecosystem app | 23 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.3`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; carries temporary Qt private-module detection patch for newer Qt6 |
 | `hyprlauncher` | ecosystem app | 24 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.5`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; carries temporary portability patch for missing POSIX includes (`NAME_MAX`, `read`) on newer Fedora toolchains |
-| `hyprshot` | ecosystem app | 25 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `1.3.0` from `Gustash/Hyprshot`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; noarch shell-script package |
+| `hyprshot` | ecosystem app | 25 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `1.3.0` from `Gustash/Hyprshot`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; noarch shell-script package |
+| `hyprpwcenter` | ecosystem app | 26 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.2`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing |
+| `hyprdim` | ecosystem app (Rust) | 27 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `3.0.1` from `donovanglover/hyprdim`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds |
 
 Recommended usage:
 
@@ -226,7 +231,7 @@ Use a staged validation approach instead of a single "smoke test":
 
 1. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 2. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-3. Add `hyprshot` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
+3. Add `hyprdim` to the `mineiro/hyprland` COPR project (SCM package entry) and build it for Fedora 43/44/rawhide.
 4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
 5. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
