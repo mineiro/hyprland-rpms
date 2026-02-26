@@ -104,6 +104,7 @@ Important:
 - `.copr/Makefile` now conditionally supports Rust vendored-source generation for packages that declare `%cargo_prep` + `Source1`, including robust `%{_sourcedir}` / `spectool -R` handling for COPR SCM `make_srpm`, so offline-capable Rust SRPMs (for example `hyprdim`) build reliably in COPR.
 - `packages/hyprshutdown/` has been added at the latest upstream release (`0.1.0`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds.
 - `packages/hyprland-plugins/` has been added as a split-plugin bundle package targeting the latest compatible upstream tag for the current stack (`v0.53.0` for `hyprland 0.53.x`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It intentionally version-locks plugin subpackages to `hyprland 0.53.3` because plugin binaries are ABI-coupled to Hyprland.
+- `packages/waybar/` has been added at the latest upstream release (`0.15.0`, `Alexays/Waybar`) as a stable `waybar` package (not `waybar-git`) to provide a newer build than Fedora's default repo version when needed; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
@@ -208,6 +209,7 @@ Build result legend (per Fedora columns):
 | `hyprdim` | ecosystem app (Rust) | 27 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `3.0.1` from `donovanglover/hyprdim`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds |
 | `hyprshutdown` | ecosystem app | 28 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.0`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; depends on `hyprtoolkit`, `hyprutils`, `glaze`, `pixman`, and `libdrm` |
 | `hyprland-plugins` | ecosystem plugins | 29 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | official Hyprland plugins bundle; latest compatible upstream tag for current stack is `v0.53.0` (repo tags are version-family aligned); packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.53.3` to match the current COPR Hyprland ABI target; COPR builds passing |
+| `waybar` | desktop bar (Wayland/Hyprland) | 30 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream stable `0.15.0` from `Alexays/Waybar`; packaged as stable `waybar` (not `waybar-git`) to provide a newer build than Fedora default repos; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide |
 
 Recommended usage:
 
