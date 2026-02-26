@@ -57,6 +57,8 @@ run_inside_container() {
   local owner="${COPR_OWNER:-}"
   local project="${COPR_PROJECT:-}"
   local dnf_opts
+  local libdir plugin_dir
+  local -a repo_packages plugin_packages all_packages expected_bins plugin_sos
 
   if [[ -z "${owner}" || -z "${project}" ]]; then
     echo "Set COPR_OWNER and COPR_PROJECT for --inside-container mode" >&2
@@ -72,29 +74,89 @@ run_inside_container() {
   log "Configuring COPR repo ${owner}/${project}"
   write_copr_repo_file "${owner}" "${project}"
 
-  log "Installing smoke-test target packages"
-  dnf -y --refresh install "${dnf_opts[@]}" \
-    hyprland \
-    hyprland-uwsm \
-    xdg-desktop-portal-hyprland \
+  # Install the full set of packages currently published from this repo,
+  # including explicit hyprland plugin subpackages (the meta package only
+  # recommends them, and weak deps are disabled for deterministic installs).
+  repo_packages=(
+    hyprwayland-scanner
+    hyprutils
+    hyprlang
+    hyprcursor
+    hyprgraphics
+    aquamarine
+    hyprwire
+    hyprland-protocols
+    glaze
+    hyprland
+    hyprland-uwsm
+    xdg-desktop-portal-hyprland
     uwsm
+    hyprlock
+    hypridle
+    hyprpaper
+    hyprpicker
+    hyprsunset
+    hyprpolkitagent
+    hyprland-qt-support
+    hyprqt6engine
+    hyprland-guiutils
+    hyprsysteminfo
+    hyprlauncher
+    hyprshot
+    hyprpwcenter
+    hyprdim
+    hyprshutdown
+    hyprtoolkit
+    hyprland-plugins
+  )
+  plugin_packages=(
+    hyprland-plugin-borders-plus-plus
+    hyprland-plugin-csgo-vulkan-fix
+    hyprland-plugin-hyprbars
+    hyprland-plugin-hyprexpo
+    hyprland-plugin-hyprfocus
+    hyprland-plugin-hyprscrolling
+    hyprland-plugin-hyprtrails
+    hyprland-plugin-hyprwinwrap
+    hyprland-plugin-xtra-dispatchers
+  )
+  all_packages=("${repo_packages[@]}" "${plugin_packages[@]}")
+
+  log "Installing smoke-test target packages"
+  dnf -y --refresh install "${dnf_opts[@]}" "${all_packages[@]}"
 
   log "Verifying RPMs are installed"
-  rpm -q \
-    hyprland \
-    hyprland-uwsm \
-    xdg-desktop-portal-hyprland \
-    uwsm
+  rpm -q "${all_packages[@]}"
 
   log "Verifying binaries are present"
-  command -v Hyprland >/dev/null
-  command -v hyprctl >/dev/null
-  command -v hyprpm >/dev/null
-  command -v hyprland-share-picker >/dev/null
-  command -v uwsm >/dev/null
-  command -v uwsm-app >/dev/null
-  command -v uuctl >/dev/null
-  command -v fumon >/dev/null
+  expected_bins=(
+    Hyprland
+    hyprctl
+    hyprpm
+    hyprland-share-picker
+    hyprwayland-scanner
+    hyprlock
+    hypridle
+    hyprpaper
+    hyprpicker
+    hyprsunset
+    hyprsysteminfo
+    hyprlauncher
+    hyprshot
+    hyprpwcenter
+    hyprdim
+    hyprshutdown
+    uwsm
+    uwsm-app
+    uuctl
+    fumon
+  )
+  for bin in "${expected_bins[@]}"; do
+    command -v "${bin}" >/dev/null || {
+      echo "Missing expected command: ${bin}" >&2
+      exit 1
+    }
+  done
 
   log "Verifying key files are present"
   test -f /usr/share/wayland-sessions/hyprland.desktop
@@ -102,8 +164,29 @@ run_inside_container() {
   test -f /usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hyprland.service
   test -f /usr/share/xdg-desktop-portal/portals/hyprland.portal
   test -f /usr/lib/systemd/user/fumon.service
+  test -x /usr/libexec/hyprpolkitagent
+  test -x /usr/bin/hyprland-dialog
   compgen -G '/usr/lib/systemd/user/wayland-*.target' >/dev/null
   compgen -G '/usr/lib/systemd/user/wayland-*.service' >/dev/null
+  libdir="$(rpm --eval '%{_libdir}')"
+  plugin_dir="${libdir}/hyprland"
+  plugin_sos=(
+    libborders-plus-plus.so
+    libcsgo-vulkan-fix.so
+    libhyprbars.so
+    libhyprexpo.so
+    libhyprfocus.so
+    libhyprscrolling.so
+    libhyprtrails.so
+    libhyprwinwrap.so
+    libxtra-dispatchers.so
+  )
+  for so in "${plugin_sos[@]}"; do
+    test -f "${plugin_dir}/${so}" || {
+      echo "Missing expected plugin library: ${plugin_dir}/${so}" >&2
+      exit 1
+    }
+  done
 
   log "Running basic CLI smoke checks"
   local hyprctl_rc=0
