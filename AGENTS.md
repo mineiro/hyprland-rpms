@@ -210,6 +210,7 @@ Build result legend (per Fedora columns):
 | `hyprshutdown` | ecosystem app | 28 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.0`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; depends on `hyprtoolkit`, `hyprutils`, `glaze`, `pixman`, and `libdrm` |
 | `hyprland-plugins` | ecosystem plugins | 29 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | official Hyprland plugins bundle; latest compatible upstream tag for current stack is `v0.53.0` (repo tags are version-family aligned); packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.53.3` to match the current COPR Hyprland ABI target; COPR builds passing |
 | `waybar` | desktop bar (Wayland/Hyprland) | 30 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream stable `0.15.0` from `Alexays/Waybar`; packaged as stable `waybar` (not `waybar-git`) to provide a newer build than Fedora default repos; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing |
+| `awww` | wallpaper daemon (Wayland) | 31 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | Codeberg successor/rename of `swww`; latest tagged release `v0.11.2` is still pre-rename and builds `swww`, so this package is currently pinned to upstream `main` snapshot commit `2c86d41d` (`Version: 0.11.2^git20260212`) to provide renamed `awww`/`awww-daemon` binaries; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide with vendored Rust `Source1` tarball |
 
 Recommended usage:
 
@@ -237,7 +238,8 @@ Use a staged validation approach instead of a single "smoke test":
 
 1. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 2. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-3. Re-run `repoclosure` after the recent ecosystem additions (`hyprdim`, `hyprshutdown`, `hyprland-plugins`) and verify the repo still closes cleanly across Fedora 43/44/rawhide.
+3. Add `awww` (snapshot package) to COPR and validate builds before broadening user-facing install recommendations away from `hyprpaper`.
+4. Re-run `repoclosure` after the recent ecosystem additions (`hyprdim`, `hyprshutdown`, `hyprland-plugins`) and `awww`, and verify the repo still closes cleanly across Fedora 43/44/rawhide.
 4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
 5. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
