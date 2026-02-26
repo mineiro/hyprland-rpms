@@ -1495,26 +1495,143 @@ enabled_metadata=1
 REPO
 
 dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs \
-  hyprland hyprland-uwsm xdg-desktop-portal-hyprland uwsm
+  hyprwayland-scanner \
+  hyprutils \
+  hyprlang \
+  hyprcursor \
+  hyprgraphics \
+  aquamarine \
+  hyprwire \
+  hyprland-protocols \
+  glaze \
+  hyprland \
+  hyprland-uwsm \
+  xdg-desktop-portal-hyprland \
+  uwsm \
+  hyprlock \
+  hypridle \
+  hyprpaper \
+  hyprpicker \
+  hyprsunset \
+  hyprpolkitagent \
+  hyprland-qt-support \
+  hyprqt6engine \
+  hyprland-guiutils \
+  hyprsysteminfo \
+  hyprlauncher \
+  hyprshot \
+  hyprpwcenter \
+  hyprdim \
+  hyprshutdown \
+  hyprtoolkit \
+  hyprland-plugins \
+  hyprland-plugin-borders-plus-plus \
+  hyprland-plugin-csgo-vulkan-fix \
+  hyprland-plugin-hyprbars \
+  hyprland-plugin-hyprexpo \
+  hyprland-plugin-hyprfocus \
+  hyprland-plugin-hyprscrolling \
+  hyprland-plugin-hyprtrails \
+  hyprland-plugin-hyprwinwrap \
+  hyprland-plugin-xtra-dispatchers
 
-rpm -q hyprland hyprland-uwsm xdg-desktop-portal-hyprland uwsm
+rpm -q \
+  hyprwayland-scanner \
+  hyprutils \
+  hyprlang \
+  hyprcursor \
+  hyprgraphics \
+  aquamarine \
+  hyprwire \
+  hyprland-protocols \
+  glaze \
+  hyprland \
+  hyprland-uwsm \
+  xdg-desktop-portal-hyprland \
+  uwsm \
+  hyprlock \
+  hypridle \
+  hyprpaper \
+  hyprpicker \
+  hyprsunset \
+  hyprpolkitagent \
+  hyprland-qt-support \
+  hyprqt6engine \
+  hyprland-guiutils \
+  hyprsysteminfo \
+  hyprlauncher \
+  hyprshot \
+  hyprpwcenter \
+  hyprdim \
+  hyprshutdown \
+  hyprtoolkit \
+  hyprland-plugins \
+  hyprland-plugin-borders-plus-plus \
+  hyprland-plugin-csgo-vulkan-fix \
+  hyprland-plugin-hyprbars \
+  hyprland-plugin-hyprexpo \
+  hyprland-plugin-hyprfocus \
+  hyprland-plugin-hyprscrolling \
+  hyprland-plugin-hyprtrails \
+  hyprland-plugin-hyprwinwrap \
+  hyprland-plugin-xtra-dispatchers
 
-command -v Hyprland >/dev/null
-command -v hyprctl >/dev/null
-command -v hyprpm >/dev/null
-command -v hyprland-share-picker >/dev/null
-command -v uwsm >/dev/null
-command -v uwsm-app >/dev/null
-command -v uuctl >/dev/null
-command -v fumon >/dev/null
+for bin in \
+  Hyprland \
+  hyprctl \
+  hyprpm \
+  hyprland-share-picker \
+  hyprwayland-scanner \
+  hyprlock \
+  hypridle \
+  hyprpaper \
+  hyprpicker \
+  hyprsunset \
+  hyprsysteminfo \
+  hyprlauncher \
+  hyprshot \
+  hyprpwcenter \
+  hyprdim \
+  hyprshutdown \
+  uwsm \
+  uwsm-app \
+  uuctl \
+  fumon
+do
+  command -v "${bin}" >/dev/null || {
+    echo "Missing expected command: ${bin}" >&2
+    exit 1
+  }
+done
 
 test -f /usr/share/wayland-sessions/hyprland.desktop
 test -f /usr/share/wayland-sessions/hyprland-uwsm.desktop
 test -f /usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hyprland.service
 test -f /usr/share/xdg-desktop-portal/portals/hyprland.portal
 test -f /usr/lib/systemd/user/fumon.service
+test -x /usr/libexec/hyprpolkitagent
+test -x /usr/bin/hyprland-dialog
 ls /usr/lib/systemd/user/wayland-*.service >/dev/null
 ls /usr/lib/systemd/user/wayland-*.target >/dev/null
+
+libdir="$(rpm --eval '%{_libdir}')"
+plugin_dir="${libdir}/hyprland"
+for so in \
+  libborders-plus-plus.so \
+  libcsgo-vulkan-fix.so \
+  libhyprbars.so \
+  libhyprexpo.so \
+  libhyprfocus.so \
+  libhyprscrolling.so \
+  libhyprtrails.so \
+  libhyprwinwrap.so \
+  libxtra-dispatchers.so
+do
+  test -f "${plugin_dir}/${so}" || {
+    echo "Missing expected plugin library: ${plugin_dir}/${so}" >&2
+    exit 1
+  }
+done
 
 systemctl --version >/dev/null
 loginctl --version >/dev/null
