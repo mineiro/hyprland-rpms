@@ -5,7 +5,7 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.53.3
+Version:        0.54.0
 Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 
@@ -17,7 +17,7 @@ Source0:        %{url}/releases/download/v%{version}/source-v%{version}.tar.gz
 BuildRequires:  cmake
 # Encode the validated Hypr stack floors so COPR/builddep does not mix older
 # Fedora packages with newer COPR packages (for example hyprutils ABI drift).
-BuildRequires:  cmake(glaze) >= 6.1.0
+BuildRequires:  cmake(glaze) >= 7.0.0
 BuildRequires:  gcc-c++
 BuildRequires:  meson
 BuildRequires:  ninja-build
