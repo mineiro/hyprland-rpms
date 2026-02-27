@@ -2,17 +2,20 @@
 
 ## Manual update flow (recommended first)
 
-1. Update the package spec (`Version`, `Source`, dependency floors, patches)
-2. Build SRPM locally:
+1. Check upstream versions:
+   - `./scripts/check-upstream-versions.sh --changed-only`
+   - `./scripts/check-upstream-versions.sh --package <name>`
+2. Update the package spec (`Version`, `Source`, dependency floors, patches)
+3. Build SRPM locally:
    - `make srpm PACKAGE=<name>`
-3. Build in `mock` for Fedora 43/44:
+4. Build in `mock` for Fedora 43/44:
    - `mock -r fedora-43-x86_64 --rebuild dist/srpm/<file>.src.rpm`
    - `mock -r fedora-44-x86_64 --rebuild dist/srpm/<file>.src.rpm`
-4. Commit changes
-5. Push to your packaging repo
-6. Trigger COPR build (manual or webhook)
-7. Run repoclosure checks on the COPR project
-8. Run smoke tests (container CI baseline; local KVM for deeper runtime checks when relevant)
+5. Commit changes
+6. Push to your packaging repo
+7. Trigger COPR build (manual or webhook)
+8. Run repoclosure checks on the COPR project
+9. Run smoke tests (container CI baseline; local KVM for deeper runtime checks when relevant)
 
 ## Validation gates (current)
 

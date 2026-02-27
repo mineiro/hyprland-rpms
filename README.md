@@ -64,6 +64,18 @@ Parse/lint specs:
 make check-specs
 ```
 
+Check upstream versions before bumping:
+
+```bash
+./scripts/check-upstream-versions.sh --changed-only
+```
+
+Check one package:
+
+```bash
+./scripts/check-upstream-versions.sh --package hyprland
+```
+
 ## COPR model (recommended)
 
 - Create one COPR project (example: `yourname/hyprwm`)
