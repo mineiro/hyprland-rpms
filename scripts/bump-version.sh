@@ -42,8 +42,7 @@ if [[ -z "${old_version}" ]]; then
   exit 1
 fi
 
-sed -i -E "0,/^Version:[[:space:]]+/{s//Version:        ${new_version}/}" "${spec}"
+sed -i -E "0,/^Version:[[:space:]]+/{s|^Version:[[:space:]]+.*$|Version:        ${new_version}|}" "${spec}"
 
 echo "Updated ${spec#${repo_root}/}: ${old_version} -> ${new_version}"
 echo "Reminder: verify Source URLs, patches, and dependency floors before build."
-
