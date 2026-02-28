@@ -24,6 +24,12 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - When a validated COPR stack exists, encode minimum compatible dependency
   floors in specs to avoid mixed-ABI `builddep` resolution (for example older
   Fedora `hyprutils` vs newer COPR `hyprutils`).
+- Treat `hyprland-plugins` as ABI-family-coupled with Hyprland. If upstream
+  has not published a plugin release for the target Hyprland family, keep
+  plugins paused instead of forcing speculative compatibility.
+- Current decision: Hyprland `0.54.x` is shipped without a matching
+  `hyprland-plugins` update; upgrade safety is handled by transitional
+  obsoletes in `hyprland` for legacy `0.53.x` plugin RPMs.
 - Current temporary bundled dependency exceptions (to be reviewed regularly):
   - `xdg-desktop-portal-hyprland`: bundled `sdbus-cpp`
   - `hyprlock`: bundled `sdbus-cpp`

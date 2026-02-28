@@ -37,6 +37,14 @@ If you want a broader ecosystem-focused name, a good alternative is `hyprwm-rpms
 - Make COPR package definitions reproducible (documented and scriptable)
 - Add automation incrementally after local/manual builds are stable
 
+## Plugin policy (current)
+
+- `hyprland-plugins` is ABI-coupled to Hyprland and is currently paused for the
+  `0.54.x` stack until upstream publishes a compatible plugins release.
+- Legacy `0.53.x` plugin RPMs are transition-cleaned by `hyprland` package
+  obsoletes so users can upgrade to `hyprland 0.54.x` without dependency
+  deadlocks.
+
 ## Quick start
 
 Install baseline packaging tools:

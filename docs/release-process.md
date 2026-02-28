@@ -17,6 +17,16 @@
 8. Run repoclosure checks on the COPR project
 9. Run smoke tests (container CI baseline; local KVM for deeper runtime checks when relevant)
 
+## Hyprland plugins compatibility gate
+
+- `hyprland-plugins` must follow upstream ABI-compatible release families.
+- Do not bump `hyprland-plugins` for a new Hyprland family unless upstream
+  publishes a compatible release/tag for that family.
+- Current status: Hyprland `0.54.x` is published and `hyprland-plugins` is
+  intentionally paused pending upstream compatibility release.
+- During this pause, retain transitional `Obsoletes` in `hyprland` so legacy
+  `0.53.x` plugin RPMs are removed automatically on upgrade.
+
 ## Validation gates (current)
 
 Use staged validation instead of relying on a single build result:
