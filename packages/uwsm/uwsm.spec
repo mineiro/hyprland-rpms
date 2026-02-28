@@ -1,5 +1,5 @@
 Name:           uwsm
-Version:        0.23.3
+Version:        0.26.4
 Release:        %autorelease
 Summary:        Universal Wayland Session Manager
 
@@ -67,6 +67,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_bindir}/uuctl
 %{_datadir}/%{name}/
 %{_datadir}/applications/uuctl.desktop
+%{_libexecdir}/%{name}/prepare-env.sh
+%{_libexecdir}/%{name}/signal-handler.sh
 %{_mandir}/man1/%{name}.1.*
 %{_mandir}/man1/fumon.1.*
 %{_mandir}/man1/uuctl.1.*
@@ -76,6 +78,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %{_userunitdir}/*-graphical.slice
 %{_userunitdir}/wayland-*.service
 %{_userunitdir}/wayland-*.target
+%{_userpresetdir}/80-fumon.preset
 
 %changelog
 %autochangelog
