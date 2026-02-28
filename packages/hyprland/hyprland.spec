@@ -77,6 +77,19 @@ Recommends:     playerctl
 Recommends:     brightnessctl
 Recommends:     mesa-dri-drivers
 Recommends:     polkit
+# Transitional cleanup for the 0.54 upgrade path: remove plugin RPMs that are
+# version-locked to Hyprland 0.53.3 and would otherwise deadlock dnf upgrades.
+# Drop these once a 0.54-compatible plugin RPM family is published.
+Obsoletes:      hyprland-plugins < 0.54~
+Obsoletes:      hyprland-plugin-borders-plus-plus < 0.54~
+Obsoletes:      hyprland-plugin-csgo-vulkan-fix < 0.54~
+Obsoletes:      hyprland-plugin-hyprbars < 0.54~
+Obsoletes:      hyprland-plugin-hyprexpo < 0.54~
+Obsoletes:      hyprland-plugin-hyprfocus < 0.54~
+Obsoletes:      hyprland-plugin-hyprscrolling < 0.54~
+Obsoletes:      hyprland-plugin-hyprtrails < 0.54~
+Obsoletes:      hyprland-plugin-hyprwinwrap < 0.54~
+Obsoletes:      hyprland-plugin-xtra-dispatchers < 0.54~
 
 %description
 Hyprland is a dynamic tiling Wayland compositor that focuses on both
