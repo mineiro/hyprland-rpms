@@ -26,6 +26,8 @@
   intentionally paused pending upstream compatibility release.
 - During this pause, retain transitional `Obsoletes` in `hyprland` so legacy
   `0.53.x` plugin RPMs are removed automatically on upgrade.
+- Repoclosure and smoke gates should exclude `hyprland-plugins` and
+  `hyprland-plugin-*` until a compatible plugin release is available.
 
 ## Validation gates (current)
 

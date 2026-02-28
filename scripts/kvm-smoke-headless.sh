@@ -1523,17 +1523,7 @@ dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs \
   hyprpwcenter \
   hyprdim \
   hyprshutdown \
-  hyprtoolkit \
-  hyprland-plugins \
-  hyprland-plugin-borders-plus-plus \
-  hyprland-plugin-csgo-vulkan-fix \
-  hyprland-plugin-hyprbars \
-  hyprland-plugin-hyprexpo \
-  hyprland-plugin-hyprfocus \
-  hyprland-plugin-hyprscrolling \
-  hyprland-plugin-hyprtrails \
-  hyprland-plugin-hyprwinwrap \
-  hyprland-plugin-xtra-dispatchers
+  hyprtoolkit
 
 rpm -q \
   hyprwayland-scanner \
@@ -1564,17 +1554,7 @@ rpm -q \
   hyprpwcenter \
   hyprdim \
   hyprshutdown \
-  hyprtoolkit \
-  hyprland-plugins \
-  hyprland-plugin-borders-plus-plus \
-  hyprland-plugin-csgo-vulkan-fix \
-  hyprland-plugin-hyprbars \
-  hyprland-plugin-hyprexpo \
-  hyprland-plugin-hyprfocus \
-  hyprland-plugin-hyprscrolling \
-  hyprland-plugin-hyprtrails \
-  hyprland-plugin-hyprwinwrap \
-  hyprland-plugin-xtra-dispatchers
+  hyprtoolkit
 
 for bin in \
   Hyprland \
@@ -1613,25 +1593,6 @@ test -x /usr/libexec/hyprpolkitagent
 test -x /usr/bin/hyprland-dialog
 ls /usr/lib/systemd/user/wayland-*.service >/dev/null
 ls /usr/lib/systemd/user/wayland-*.target >/dev/null
-
-libdir="$(rpm --eval '%{_libdir}')"
-plugin_dir="${libdir}/hyprland"
-for so in \
-  libborders-plus-plus.so \
-  libcsgo-vulkan-fix.so \
-  libhyprbars.so \
-  libhyprexpo.so \
-  libhyprfocus.so \
-  libhyprscrolling.so \
-  libhyprtrails.so \
-  libhyprwinwrap.so \
-  libxtra-dispatchers.so
-do
-  test -f "${plugin_dir}/${so}" || {
-    echo "Missing expected plugin library: ${plugin_dir}/${so}" >&2
-    exit 1
-  }
-done
 
 systemctl --version >/dev/null
 loginctl --version >/dev/null

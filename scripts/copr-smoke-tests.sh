@@ -107,20 +107,8 @@ run_inside_container() {
     hyprdim
     hyprshutdown
     hyprtoolkit
-    hyprland-plugins
   )
-  plugin_packages=(
-    hyprland-plugin-borders-plus-plus
-    hyprland-plugin-csgo-vulkan-fix
-    hyprland-plugin-hyprbars
-    hyprland-plugin-hyprexpo
-    hyprland-plugin-hyprfocus
-    hyprland-plugin-hyprscrolling
-    hyprland-plugin-hyprtrails
-    hyprland-plugin-hyprwinwrap
-    hyprland-plugin-xtra-dispatchers
-  )
-  all_packages=("${repo_packages[@]}" "${plugin_packages[@]}")
+  all_packages=("${repo_packages[@]}")
 
   log "Installing smoke-test target packages"
   dnf -y --refresh install "${dnf_opts[@]}" "${all_packages[@]}"
@@ -168,25 +156,6 @@ run_inside_container() {
   test -x /usr/bin/hyprland-dialog
   compgen -G '/usr/lib/systemd/user/wayland-*.target' >/dev/null
   compgen -G '/usr/lib/systemd/user/wayland-*.service' >/dev/null
-  libdir="$(rpm --eval '%{_libdir}')"
-  plugin_dir="${libdir}/hyprland"
-  plugin_sos=(
-    libborders-plus-plus.so
-    libcsgo-vulkan-fix.so
-    libhyprbars.so
-    libhyprexpo.so
-    libhyprfocus.so
-    libhyprscrolling.so
-    libhyprtrails.so
-    libhyprwinwrap.so
-    libxtra-dispatchers.so
-  )
-  for so in "${plugin_sos[@]}"; do
-    test -f "${plugin_dir}/${so}" || {
-      echo "Missing expected plugin library: ${plugin_dir}/${so}" >&2
-      exit 1
-    }
-  done
 
   log "Running basic CLI smoke checks"
   local hyprctl_rc=0

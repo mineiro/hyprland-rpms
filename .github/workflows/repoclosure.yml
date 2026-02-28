@@ -44,5 +44,7 @@ jobs:
       - name: Repoclosure
         run: |
           dnf -y install dnf-plugins-core
-          dnf repoclosure --check "copr:${COPR_OWNER}:${COPR_PROJECT}" --newest --best
-
+          # Plugin RPMs are intentionally paused on 0.53.x until upstream ships
+          # a 0.54.x-compatible release family.
+          dnf --exclude="hyprland-plugins" --exclude="hyprland-plugin-*" \
+            repoclosure --check "copr:${COPR_OWNER}:${COPR_PROJECT}" --newest --best

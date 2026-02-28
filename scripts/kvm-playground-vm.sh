@@ -280,17 +280,7 @@ dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs \
   hyprpwcenter \
   hyprdim \
   hyprshutdown \
-  hyprtoolkit \
-  hyprland-plugins \
-  hyprland-plugin-borders-plus-plus \
-  hyprland-plugin-csgo-vulkan-fix \
-  hyprland-plugin-hyprbars \
-  hyprland-plugin-hyprexpo \
-  hyprland-plugin-hyprfocus \
-  hyprland-plugin-hyprscrolling \
-  hyprland-plugin-hyprtrails \
-  hyprland-plugin-hyprwinwrap \
-  hyprland-plugin-xtra-dispatchers
+  hyprtoolkit
 
 # Try to provide a familiar proprietary browser in the playground VM. If the
 # Google repo/package is unavailable for the Fedora release, fall back to

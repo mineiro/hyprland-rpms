@@ -9,12 +9,6 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 - COPR builds use `SCM` + `make_srpm`
 - Local testing uses `rpmbuild` / `mock`
 
-## Why this name?
-
-`hyprland-rpms` is a better fit than `hyprland` when the repo contains multiple RPM package projects (for example `hyprland`, `xdg-desktop-portal-hyprland`, `hyprlock`, `hypridle`, `hyprpaper`).
-
-If you want a broader ecosystem-focused name, a good alternative is `hyprwm-rpms`.
-
 ## Layout
 
 ```text
@@ -44,6 +38,8 @@ If you want a broader ecosystem-focused name, a good alternative is `hyprwm-rpms
 - Legacy `0.53.x` plugin RPMs are transition-cleaned by `hyprland` package
   obsoletes so users can upgrade to `hyprland 0.54.x` without dependency
   deadlocks.
+- Existing plugin users can stay on their installed `0.53.x` set; plugin RPMs
+  are treated as legacy until a compatible upstream release lands.
 
 ## Quick start
 
