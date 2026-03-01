@@ -67,6 +67,11 @@ Key files/directories:
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
 - `packages/uwsm/` has been added (ported from `solopasha/hyprlandRPM` spec baseline, adapted to this monorepo style).
+- `scripts/mock-matrix-build.sh` has been added for local Fedora/arch matrix runs (`chain` or `rebuild` mode), including optional `--addrepo`, `--skip-srpm`, and `--continue-on-failure`.
+- Latest local aarch64 core-chain validation status (`hyprwayland-scanner` -> `uwsm`):
+  - Fedora 43: passing in full chain mode.
+  - Fedora 44: blocked at `aquamarine` by a reproducible emulated-aarch64 toolchain crash (`qemu` + `g++/cc1plus` SIGSEGV), not a dependency-resolution failure.
+  - Rawhide: deferred for now (matrix run stopped on Fedora 44 failure).
 
 Important:
 
@@ -237,13 +242,14 @@ Use a staged validation approach instead of a single "smoke test":
 
 ## Suggested next steps (carry-over)
 
-1. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
-2. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-3. Re-run `repoclosure` after the recent ecosystem additions (`hyprdim`, `hyprshutdown`, `hyprland-plugins`) and `awww`, and verify the repo still closes cleanly across Fedora 43/44/rawhide.
-4. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
-5. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
-6. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
-7. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
+1. Resume deferred aarch64 matrix validation when convenient: run rawhide for the same core chain and re-check Fedora 44 `aquamarine` on native aarch64 hardware (preferred) or with local emulation workarounds if needed.
+2. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
+3. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
+4. Re-run `repoclosure` after the recent ecosystem additions (`hyprdim`, `hyprshutdown`, `hyprland-plugins`) and `awww`, and verify the repo still closes cleanly across Fedora 43/44/rawhide.
+5. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
+6. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
+7. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
+8. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
 
 ## Working conventions for future edits
 
@@ -272,6 +278,18 @@ Build SRPM for one package:
 
 ```bash
 make srpm PACKAGE=xdg-desktop-portal-hyprland
+```
+
+Run the Fedora/arch mock matrix (default: 43/44/rawhide x x86_64/aarch64):
+
+```bash
+./scripts/mock-matrix-build.sh --all-packages
+```
+
+Run a focused matrix for the core chain only:
+
+```bash
+./scripts/mock-matrix-build.sh hyprwayland-scanner hyprutils hyprlang hyprcursor hyprgraphics aquamarine hyprwire hyprland-protocols glaze hyprland xdg-desktop-portal-hyprland uwsm
 ```
 
 Scaffold a new package:
