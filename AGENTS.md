@@ -111,6 +111,7 @@ Important:
 - `packages/hyprland-plugins/` has been added as a split-plugin bundle package targeting the latest compatible upstream tag for the pinned plugin stack (`v0.53.0`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It intentionally version-locks plugin subpackages to `hyprland 0.53.3`; Hyprland `0.54.0` is shipped separately without forcing plugin ABI compatibility yet.
 - `packages/waybar/` has been added at the latest upstream release (`0.15.0`, `Alexays/Waybar`) as a stable `waybar` package (not `waybar-git`) to provide a newer build than Fedora's default repo version when needed; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide, and COPR builds are now passing in `mineiro/hyprland`.
 - `packages/awww/` has been added as a wallpaper daemon package for Wayland (Codeberg successor/rename of `swww`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It is currently pinned to an upstream `main` snapshot (`2c86d41d`, `Version: 0.11.2^git20260212`) because the latest tagged release (`v0.11.2`) still builds the legacy `swww`/`swww-daemon` binaries.
+- `packages/swayosd/` has been added at the latest upstream release (`0.3.0`, `ErikReider/SwayOSD`), locally validated via SRPM + Fedora 43/44/rawhide `mock --chain` on x86_64. It uses vendored Rust crates (`Source1`) generated during SRPM creation so builds work offline in mock/COPR.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
@@ -217,6 +218,7 @@ Build result legend (per Fedora columns):
 | `hyprland-plugins` | ecosystem plugins | 29 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | official Hyprland plugins bundle; latest compatible upstream tag for pinned plugin stack is `v0.53.0` (repo tags are version-family aligned); packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.53.3`; Hyprland `0.54.0` is shipped without forcing plugin ABI compatibility until upstream pin/tag support lands; COPR builds passing |
 | `waybar` | desktop bar (Wayland/Hyprland) | 30 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream stable `0.15.0` from `Alexays/Waybar`; packaged as stable `waybar` (not `waybar-git`) to provide a newer build than Fedora default repos; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing |
 | `awww` | wallpaper daemon (Wayland) | 31 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | Codeberg successor/rename of `swww`; latest tagged release `v0.11.2` is still pre-rename and builds `swww`, so this package is currently pinned to upstream `main` snapshot commit `2c86d41d` (`Version: 0.11.2^git20260212`) to provide renamed `awww`/`awww-daemon` binaries; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide with vendored Rust `Source1` tarball; COPR builds passing |
+| `swayosd` | OSD service (Wayland) | 32 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.3.0` from `ErikReider/SwayOSD`; local SRPM + Fedora 43/44/rawhide `mock --chain` pass on x86_64; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds |
 
 Recommended usage:
 
@@ -250,6 +252,7 @@ Use a staged validation approach instead of a single "smoke test":
 6. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 7. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
 8. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
+9. Onboard `swayosd` to COPR (`mineiro/hyprland`) and re-run `repoclosure` after publish.
 
 ## Working conventions for future edits
 

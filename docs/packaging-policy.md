@@ -55,6 +55,7 @@ Suggested next ecosystem packages after the core chain stabilizes:
 2. `hypridle`
 3. `hyprtoolkit`
 4. `hyprpaper` (latest `0.8.x` path depends on `hyprtoolkit`)
+5. `swayosd` (Rust + Meson package; keep vendored `Source1` workflow for offline mock/COPR builds)
 
 ## What to avoid (fresh-start guardrails)
 

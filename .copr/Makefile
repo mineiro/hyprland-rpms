@@ -52,7 +52,10 @@ srpm: prepare
 			tar -xf "$$src0_path" -C "$$tmpdir"; \
 		srcdir="$$(find "$$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -1)"; \
 		[ -n "$$srcdir" ] || { echo "Failed to locate extracted source dir for vendoring"; exit 1; }; \
-		( cd "$$srcdir" && cargo vendor --locked vendor >/dev/null ); \
+		( cd "$$srcdir" && if ! cargo vendor --locked vendor >/dev/null; then \
+			echo "cargo vendor --locked failed for ./$(specfile), retrying without --locked" >&2; \
+			cargo vendor vendor >/dev/null; \
+		fi ); \
 		tar -cJf "./$$vendor_name" -C "$$srcdir" vendor; \
 		rm -rf "$$tmpdir"; \
 		trap - EXIT; \
