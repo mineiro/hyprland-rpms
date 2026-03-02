@@ -68,10 +68,14 @@ Key files/directories:
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
 - `packages/uwsm/` has been added (ported from `solopasha/hyprlandRPM` spec baseline, adapted to this monorepo style).
 - `scripts/mock-matrix-build.sh` has been added for local Fedora/arch matrix runs (`chain` or `rebuild` mode), including optional `--addrepo`, `--skip-srpm`, and `--continue-on-failure`.
-- Latest local aarch64 core-chain validation status (`hyprwayland-scanner` -> `uwsm`):
-  - Fedora 43: passing in full chain mode.
-  - Fedora 44: blocked at `aquamarine` by a reproducible emulated-aarch64 toolchain crash (`qemu` + `g++/cc1plus` SIGSEGV), not a dependency-resolution failure.
-  - Rawhide: deferred for now (matrix run stopped on Fedora 44 failure).
+- Latest COPR aarch64 rollout status (2026-03-02):
+  - `hyprwayland-scanner` aarch64 bootstrap build succeeded as `10181653` on `fedora-43-aarch64`, `fedora-44-aarch64`, and `fedora-rawhide-aarch64`.
+  - Remaining package chain was queued in order with `--after-build-id` for aarch64-only chroots:
+    - `hyprutils` `10181665` -> `awww` `10181694`
+  - Snapshot right after queue submission:
+    - `10181665` (`hyprutils`) running
+    - downstream builds pending in chain order
+  - Historical local emulated-aarch64 Fedora 44 issue (`qemu` + `g++/cc1plus` SIGSEGV at `aquamarine`) remains a known local-matrix limitation, but COPR native aarch64 builds are now being used for rollout.
 
 Important:
 
@@ -79,7 +83,7 @@ Important:
 - `packages/xdg-desktop-portal-hyprland/xdg-desktop-portal-hyprland.spec` was previously re-verified against the Hyprland `0.53.3` stack; full re-validation against `0.54.0` is pending.
 - COPR onboarding is complete in `mineiro/hyprland` (after correcting an initial typoed project name `hyperland`):
   - SCM package entries created for the validated stack plus `uwsm`
-  - all target builds succeeded on Fedora 43/44/rawhide
+  - all target x86_64 builds succeeded on Fedora 43/44/rawhide
 - `repoclosure` now passes for Fedora 43/44/rawhide after adding `uwsm` (required by `hyprland-uwsm` subpackage runtime dependency).
 - Clean standalone `mock --rebuild` (non-chain) has been re-validated for `hyprland` and `xdg-desktop-portal-hyprland` on Fedora 43/44/rawhide using the `mineiro/hyprland` COPR repos (`mock --addrepo ...`).
 - Container smoke-test automation is implemented and validated:
@@ -112,6 +116,8 @@ Important:
 - `packages/waybar/` has been added at the latest upstream release (`0.15.0`, `Alexays/Waybar`) as a stable `waybar` package (not `waybar-git`) to provide a newer build than Fedora's default repo version when needed; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide, and COPR builds are now passing in `mineiro/hyprland`.
 - `packages/awww/` has been added as a wallpaper daemon package for Wayland (Codeberg successor/rename of `swww`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It is currently pinned to an upstream `main` snapshot (`2c86d41d`, `Version: 0.11.2^git20260212`) because the latest tagged release (`v0.11.2`) still builds the legacy `swww`/`swww-daemon` binaries.
 - `packages/swayosd/` has been added at the latest upstream release (`0.3.0`, `ErikReider/SwayOSD`), locally validated via SRPM + Fedora 43/44/rawhide `mock --chain` on x86_64. It uses vendored Rust crates (`Source1`) generated during SRPM creation so builds work offline in mock/COPR.
+- `packages/hyprls/` has been added at the latest upstream release (`0.13.0`, `hyprland-community/hyprls`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It uses vendored Go modules (`Source1`) so offline mock builds work, and currently carries a small `go.mod` toolchain compatibility adjustment for Fedora 43's Go 1.25.x.
+- `packages/tree-sitter-hyprlang/` has been added at the latest upstream release (`3.1.0`, `tree-sitter-grammars/tree-sitter-hyprlang`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It follows Fedora tree-sitter packaging macros with source package name `tree-sitter-hyprlang`, producing `libtree-sitter-hyprlang` and `libtree-sitter-hyprlang-devel`.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky
@@ -185,6 +191,10 @@ Build result legend (per Fedora columns):
 - `fail` = failing
 - `n/a` = not targeted
 
+Note:
+- `COPR builds` currently reflects the latest published x86_64 status for most packages.
+- The aarch64 rebuild rollout is in progress via ordered COPR chain `10181665`..`10181694` (after `hyprwayland-scanner` `10181653`).
+
 | Package | Role | Priority | Spec status | F43 mock | F44 mock | Rawhide mock | COPR pkg entry | COPR builds | Notes |
 |---|---|---:|---|---|---|---|---|---|---|
 | `hyprwayland-scanner` | core toolchain | 1 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.4.5`) and mock rebuilds pass on Fedora 43/44/rawhide; COPR SCM entry/builds passing in `mineiro/hyprland` |
@@ -219,6 +229,8 @@ Build result legend (per Fedora columns):
 | `waybar` | desktop bar (Wayland/Hyprland) | 30 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream stable `0.15.0` from `Alexays/Waybar`; packaged as stable `waybar` (not `waybar-git`) to provide a newer build than Fedora default repos; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing |
 | `awww` | wallpaper daemon (Wayland) | 31 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | Codeberg successor/rename of `swww`; latest tagged release `v0.11.2` is still pre-rename and builds `swww`, so this package is currently pinned to upstream `main` snapshot commit `2c86d41d` (`Version: 0.11.2^git20260212`) to provide renamed `awww`/`awww-daemon` binaries; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide with vendored Rust `Source1` tarball; COPR builds passing |
 | `swayosd` | OSD service (Wayland) | 32 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.3.0` from `ErikReider/SwayOSD`; local SRPM + Fedora 43/44/rawhide `mock --chain` pass on x86_64; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds |
+| `hyprls` | language server (Hyprland config) | 33 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.13.0` from `hyprland-community/hyprls`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; uses vendored Go `Source1` tarball for offline mock builds and a temporary `go.mod` compatibility adjustment for Fedora 43 Go 1.25.x |
+| `tree-sitter-hyprlang` | tree-sitter grammar (Hyprlang) | 34 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `3.1.0` from `tree-sitter-grammars/tree-sitter-hyprlang`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; packaged with Fedora `BuildSystem: tree_sitter`, producing `libtree-sitter-hyprlang` and `libtree-sitter-hyprlang-devel` |
 
 Recommended usage:
 
@@ -244,15 +256,15 @@ Use a staged validation approach instead of a single "smoke test":
 
 ## Suggested next steps (carry-over)
 
-1. Resume deferred aarch64 matrix validation when convenient: run rawhide for the same core chain and re-check Fedora 44 `aquamarine` on native aarch64 hardware (preferred) or with local emulation workarounds if needed.
+1. Monitor the in-flight COPR aarch64 chain (`10181665`..`10181694`), retry any failed links in order, and confirm all packages publish for Fedora 43/44/rawhide aarch64.
 2. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 3. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-4. Re-run `repoclosure` after the recent ecosystem additions (`hyprdim`, `hyprshutdown`, `hyprland-plugins`) and `awww`, and verify the repo still closes cleanly across Fedora 43/44/rawhide.
+4. Re-run `repoclosure` after the aarch64 rollout completes and verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64 and aarch64.
 5. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
 6. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 7. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
 8. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
-9. Onboard `swayosd` to COPR (`mineiro/hyprland`) and re-run `repoclosure` after publish.
+9. Onboard `swayosd`, `hyprls`, and `tree-sitter-hyprlang` to COPR (`mineiro/hyprland`) and re-run `repoclosure` after publish.
 
 ## Working conventions for future edits
 

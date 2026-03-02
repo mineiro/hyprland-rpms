@@ -8,12 +8,19 @@
 2. Update the package spec (`Version`, `Source`, dependency floors, patches)
 3. Build SRPM locally:
    - `make srpm PACKAGE=<name>`
-4. Build in `mock` for Fedora 43/44:
+4. Build in `mock` for Fedora 43/44/rawhide (x86_64 baseline):
    - `mock -r fedora-43-x86_64 --rebuild dist/srpm/<file>.src.rpm`
    - `mock -r fedora-44-x86_64 --rebuild dist/srpm/<file>.src.rpm`
+   - `mock -r fedora-rawhide-x86_64 --rebuild dist/srpm/<file>.src.rpm`
+   - Add aarch64 mock rebuilds when needed/available:
+     - `mock -r fedora-43-aarch64 --rebuild dist/srpm/<file>.src.rpm`
+     - `mock -r fedora-44-aarch64 --rebuild dist/srpm/<file>.src.rpm`
+     - `mock -r fedora-rawhide-aarch64 --rebuild dist/srpm/<file>.src.rpm`
 5. Commit changes
 6. Push to your packaging repo
 7. Trigger COPR build (manual or webhook)
+   - For aarch64-only rollouts on already-stable x86_64 stacks:
+     - `copr-cli build-package <owner>/<project> --name <pkg> -r fedora-43-aarch64 -r fedora-44-aarch64 -r fedora-rawhide-aarch64`
 8. Run repoclosure checks on the COPR project
 9. Run smoke tests (container CI baseline; local KVM for deeper runtime checks when relevant)
 

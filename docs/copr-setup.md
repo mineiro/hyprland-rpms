@@ -9,7 +9,17 @@ This repo is designed for COPR `SCM` package entries (one entry per package dire
   - `fedora-43-x86_64`
   - `fedora-44-x86_64`
   - `fedora-rawhide-x86_64`
-- Add `aarch64` later after x86_64 is stable
+  - `fedora-43-aarch64`
+  - `fedora-44-aarch64`
+  - `fedora-rawhide-aarch64`
+
+If x86_64 builds are already stable and you are only rolling out aarch64,
+trigger builds with explicit aarch64 chroots only:
+
+```bash
+copr-cli build-package <owner>/<project> --name <pkg> \
+  -r fedora-43-aarch64 -r fedora-44-aarch64 -r fedora-rawhide-aarch64
+```
 
 ## Add a package from this monorepo (SCM)
 
@@ -45,4 +55,3 @@ Use a separate automation layer (for example GitHub Actions or Packit) to:
 2. Update `Version` / `Source` / patches in your spec
 3. Commit or tag this packaging repo
 4. Let COPR rebuild from webhook
-
