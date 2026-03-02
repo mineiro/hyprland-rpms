@@ -72,12 +72,12 @@ Key files/directories:
   - `hyprwayland-scanner` aarch64 bootstrap build succeeded as `10181653` on `fedora-43-aarch64`, `fedora-44-aarch64`, and `fedora-rawhide-aarch64`.
   - Remaining package chain was queued in order with `--after-build-id` for aarch64-only chroots:
     - `hyprutils` `10181665` -> `awww` `10181694`
-  - Snapshot right after queue submission:
-    - `10181665` (`hyprutils`) running
-    - downstream builds pending in chain order
-  - Follow-up status check (2026-03-02):
-    - `10181665` (`hyprutils`) succeeded
-    - `10181673` (`hyprland`) and later chain links were still pending
+  - Final status snapshot (2026-03-02):
+    - `10181665`..`10181694`: all succeeded except `10181692`
+    - `10181692` (`hyprland-plugins`) failed on all aarch64 chroots at builddep resolution:
+      - `No match for argument: pkgconfig(hyprland) = 0.53.3`
+      - this is expected for the current `hyprland 0.54.0` stack because `hyprland-plugins` is intentionally pinned to the legacy `0.53.x` ABI family
+    - downstream `waybar` (`10181693`) and `awww` (`10181694`) still completed successfully
   - Historical local emulated-aarch64 Fedora 44 issue (`qemu` + `g++/cc1plus` SIGSEGV at `aquamarine`) remains a known local-matrix limitation, but COPR native aarch64 builds are now being used for rollout.
 
 Important:
@@ -259,7 +259,7 @@ Use a staged validation approach instead of a single "smoke test":
 
 ## Suggested next steps (carry-over)
 
-1. Monitor the in-flight COPR aarch64 chain (`10181665`..`10181694`), retry any failed links in order, and confirm all packages publish for Fedora 43/44/rawhide aarch64.
+1. Aarch64 chain `10181665`..`10181694` is complete except `hyprland-plugins` (`10181692`) failing as expected against the `0.54.0` stack; keep plugins excluded from the `0.54.x` rollout path unless/until upstream publishes a compatible plugin family.
 2. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 3. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
 4. Re-run `repoclosure` after the aarch64 rollout completes and verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64 and aarch64.
