@@ -33,6 +33,8 @@
   intentionally paused pending upstream compatibility release.
 - During this pause, retain transitional `Obsoletes` in `hyprland` so legacy
   `0.53.x` plugin RPMs are removed automatically on upgrade.
+- Current packaging policy keeps legacy `hyprland-plugins` for users remaining
+  on `hyprland 0.53.3` and excludes it from aarch64 `0.54.x` rollout chains.
 - Repoclosure and smoke gates should exclude `hyprland-plugins` and
   `hyprland-plugin-*` until a compatible plugin release is available.
 

@@ -30,6 +30,9 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - Current decision: Hyprland `0.54.x` is shipped without a matching
   `hyprland-plugins` update; upgrade safety is handled by transitional
   obsoletes in `hyprland` for legacy `0.53.x` plugin RPMs.
+- Current rollout policy: keep legacy `hyprland-plugins` for users that remain
+  on `hyprland 0.53.3` (x86_64 path), and do not include `hyprland-plugins`
+  in aarch64 `0.54.x` forward build chains.
 - Current temporary bundled dependency exceptions (to be reviewed regularly):
   - `xdg-desktop-portal-hyprland`: bundled `sdbus-cpp`
   - `hyprlock`: bundled `sdbus-cpp`

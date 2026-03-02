@@ -73,11 +73,12 @@ Key files/directories:
   - Remaining package chain was queued in order with `--after-build-id` for aarch64-only chroots:
     - `hyprutils` `10181665` -> `awww` `10181694`
   - Final status snapshot (2026-03-02):
-    - `10181665`..`10181694`: all succeeded except `10181692`
-    - `10181692` (`hyprland-plugins`) failed on all aarch64 chroots at builddep resolution:
-      - `No match for argument: pkgconfig(hyprland) = 0.53.3`
-      - this is expected for the current `hyprland 0.54.0` stack because `hyprland-plugins` is intentionally pinned to the legacy `0.53.x` ABI family
-    - downstream `waybar` (`10181693`) and `awww` (`10181694`) still completed successfully
+    - `10181665`..`10181694`: completed; all intended aarch64 rollout packages succeeded.
+    - `hyprland-plugins` was intentionally excluded from the aarch64 `0.54.x` path (legacy package is pinned to Hyprland `0.53.3` ABI family).
+    - an intermediate failed `hyprland-plugins` aarch64 test build (`10181692`) was removed from COPR to avoid user confusion.
+  - Current arch policy:
+    - `aarch64` users track Hyprland `0.54.x` forward (no legacy `hyprland-plugins` publish path).
+    - legacy `hyprland-plugins` support is kept for users staying on `hyprland 0.53.3` (x86_64 repo path).
   - Historical local emulated-aarch64 Fedora 44 issue (`qemu` + `g++/cc1plus` SIGSEGV at `aquamarine`) remains a known local-matrix limitation, but COPR native aarch64 builds are now being used for rollout.
 
 Important:
@@ -196,7 +197,8 @@ Build result legend (per Fedora columns):
 
 Note:
 - `COPR builds` currently reflects the latest published x86_64 status for most packages.
-- The aarch64 rebuild rollout is in progress via ordered COPR chain `10181665`..`10181694` (after `hyprwayland-scanner` `10181653`).
+- The aarch64 rollout chain `10181665`..`10181694` completed for the active `0.54.x` package set.
+- `hyprland-plugins` remains a legacy `0.53.3` compatibility package and is intentionally excluded from aarch64 rollout builds.
 
 | Package | Role | Priority | Spec status | F43 mock | F44 mock | Rawhide mock | COPR pkg entry | COPR builds | Notes |
 |---|---|---:|---|---|---|---|---|---|---|
@@ -228,7 +230,7 @@ Note:
 | `hyprpwcenter` | ecosystem app | 26 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.2`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing |
 | `hyprdim` | ecosystem app (Rust) | 27 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `3.0.1` from `donovanglover/hyprdim`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds |
 | `hyprshutdown` | ecosystem app | 28 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream `0.1.0`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; depends on `hyprtoolkit`, `hyprutils`, `glaze`, `pixman`, and `libdrm` |
-| `hyprland-plugins` | ecosystem plugins | 29 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | official Hyprland plugins bundle; latest compatible upstream tag for pinned plugin stack is `v0.53.0` (repo tags are version-family aligned); packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.53.3`; Hyprland `0.54.0` is shipped without forcing plugin ABI compatibility until upstream pin/tag support lands; COPR builds passing |
+| `hyprland-plugins` | ecosystem plugins | 29 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | official Hyprland plugins bundle; latest compatible upstream tag for pinned plugin stack is `v0.53.0` (repo tags are version-family aligned); packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.53.3`; intentionally kept as a legacy compatibility path and excluded from the aarch64 `0.54.x` rollout |
 | `waybar` | desktop bar (Wayland/Hyprland) | 30 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | latest upstream stable `0.15.0` from `Alexays/Waybar`; packaged as stable `waybar` (not `waybar-git`) to provide a newer build than Fedora default repos; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing |
 | `awww` | wallpaper daemon (Wayland) | 31 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | Codeberg successor/rename of `swww`; latest tagged release `v0.11.2` is still pre-rename and builds `swww`, so this package is currently pinned to upstream `main` snapshot commit `2c86d41d` (`Version: 0.11.2^git20260212`) to provide renamed `awww`/`awww-daemon` binaries; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide with vendored Rust `Source1` tarball; COPR builds passing |
 | `swayosd` | OSD service (Wayland) | 32 | `MRH` | `ok` | `ok` | `ok` | `no` | `-` | latest upstream `0.3.0` from `ErikReider/SwayOSD`; local SRPM + Fedora 43/44/rawhide `mock --chain` pass on x86_64; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds |
@@ -259,7 +261,7 @@ Use a staged validation approach instead of a single "smoke test":
 
 ## Suggested next steps (carry-over)
 
-1. Aarch64 chain `10181665`..`10181694` is complete except `hyprland-plugins` (`10181692`) failing as expected against the `0.54.0` stack; keep plugins excluded from the `0.54.x` rollout path unless/until upstream publishes a compatible plugin family.
+1. Keep `hyprland-plugins` excluded from the aarch64 `0.54.x` rollout path unless/until upstream publishes a compatible plugin family.
 2. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 3. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
 4. Re-run `repoclosure` after the aarch64 rollout completes and verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64 and aarch64.
