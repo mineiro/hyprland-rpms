@@ -7,13 +7,19 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   parse-and-lint:
     runs-on: ubuntu-latest
     container:
       image: registry.fedoraproject.org/fedora:44
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install tooling
         run: |
@@ -23,4 +29,3 @@ jobs:
       - name: Parse and lint specs
         run: |
           ./scripts/check-specs.sh
-

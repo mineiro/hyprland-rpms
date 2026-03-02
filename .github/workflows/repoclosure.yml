@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '20 9 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   repoclosure:
     runs-on: ubuntu-latest
@@ -25,6 +28,8 @@ jobs:
         run: |
           test -n "${COPR_OWNER}" || { echo "Set repository variable COPR_OWNER"; exit 1; }
           test -n "${COPR_PROJECT}" || { echo "Set repository variable COPR_PROJECT"; exit 1; }
+          printf '%s' "${COPR_OWNER}" | grep -Eq '^[A-Za-z0-9._-]+$' || { echo "COPR_OWNER contains invalid characters"; exit 1; }
+          printf '%s' "${COPR_PROJECT}" | grep -Eq '^[A-Za-z0-9._-]+$' || { echo "COPR_PROJECT contains invalid characters"; exit 1; }
 
       - name: Add COPR repo file
         run: |

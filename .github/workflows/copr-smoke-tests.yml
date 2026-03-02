@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '40 9 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -21,14 +24,18 @@ jobs:
       COPR_OWNER: ${{ vars.COPR_OWNER }}
       COPR_PROJECT: ${{ vars.COPR_PROJECT }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Validate repo variables
         run: |
           test -n "${COPR_OWNER}" || { echo "Set repository variable COPR_OWNER"; exit 1; }
           test -n "${COPR_PROJECT}" || { echo "Set repository variable COPR_PROJECT"; exit 1; }
+          printf '%s' "${COPR_OWNER}" | grep -Eq '^[A-Za-z0-9._-]+$' || { echo "COPR_OWNER contains invalid characters"; exit 1; }
+          printf '%s' "${COPR_PROJECT}" | grep -Eq '^[A-Za-z0-9._-]+$' || { echo "COPR_PROJECT contains invalid characters"; exit 1; }
 
       - name: Run COPR smoke test
         run: |
           bash ./scripts/copr-smoke-tests.sh --inside-container
-
