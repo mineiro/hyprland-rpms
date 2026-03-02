@@ -75,6 +75,9 @@ Key files/directories:
   - Snapshot right after queue submission:
     - `10181665` (`hyprutils`) running
     - downstream builds pending in chain order
+  - Follow-up status check (2026-03-02):
+    - `10181665` (`hyprutils`) succeeded
+    - `10181673` (`hyprland`) and later chain links were still pending
   - Historical local emulated-aarch64 Fedora 44 issue (`qemu` + `g++/cc1plus` SIGSEGV at `aquamarine`) remains a known local-matrix limitation, but COPR native aarch64 builds are now being used for rollout.
 
 Important:
