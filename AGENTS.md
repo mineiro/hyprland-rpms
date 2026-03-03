@@ -84,6 +84,7 @@ Key files/directories:
 Important:
 
 - `packages/hyprland/hyprland.spec` is now published in COPR at `0.54.0` (Fedora 43/44/rawhide builds passing) with the packaged local dependency stack (`hyprwayland-scanner`, `hyprutils`, `hyprlang`, `hyprcursor`, `hyprgraphics`, `aquamarine`, `hyprwire`, `hyprland-protocols`, `glaze`).
+- `packages/hyprland/hyprland.spec` has been bumped locally to `0.54.1` (release date: 2026-03-03), changelog-reviewed, and re-validated with SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 using `mineiro/hyprland` repo deps; COPR publish/build for `0.54.1` is pending.
 - `packages/xdg-desktop-portal-hyprland/xdg-desktop-portal-hyprland.spec` was previously re-verified against the Hyprland `0.53.3` stack; full re-validation against `0.54.0` is pending.
 - COPR onboarding is complete in `mineiro/hyprland` (after correcting an initial typoed project name `hyperland`):
   - SCM package entries created for the validated stack plus `uwsm`
@@ -211,7 +212,7 @@ Note:
 | `hyprwire` | core library/tooling | 7 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.3.0`) and Fedora 43/44/rawhide mock chain rebuilds pass; COPR build verified requiring `libhyprutils.so.10` |
 | `hyprland-protocols` | protocol definitions | 8 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.7.0`) and Fedora 43/44/rawhide mock chain rebuilds pass; COPR builds passing |
 | `glaze` | compatibility dependency | 9 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`7.0.2`); pinned to `7.x` for Hyprland `0.54.x` compatibility; COPR builds passing |
-| `hyprland` | compositor | 10 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.54.0`); COPR build passing on Fedora 43/44/rawhide; `hyprpm`/`start-hyprland`/`hyprland-uwsm` in package output |
+| `hyprland` | compositor | 10 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`0.54.1`) and clean standalone `mock --rebuild` pass on Fedora 43/44/rawhide x86_64 via `mineiro/hyprland`; latest published COPR build is `0.54.0` while `0.54.1` publish is pending; package output includes `hyprpm`/`start-hyprland`/`hyprland-uwsm` |
 | `xdg-desktop-portal-hyprland` | portal backend | 11 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | local SRPM builds (`1.3.11`); full mock chain pass on Fedora 43/44/rawhide; clean standalone `mock --rebuild` also revalidated on Fedora 43/44/rawhide via `mineiro/hyprland`; includes `pkgconfig(libspa-0.2)` and bundled `sdbus-cpp` declaration |
 | `uwsm` | session manager/runtime dependency | 12 | `COPR` | `-` | `-` | `-` | `yes` | `ok` | added to satisfy `hyprland-uwsm` runtime dependency; COPR builds pass on Fedora 43/44/rawhide; repoclosure passes after publishing |
 | `hyprlock` | ecosystem app | 13 | `COPR` | `ok` | `ok` | `ok` | `yes` | `ok` | starter spec added (`0.9.2`), includes documented temporary bundled `sdbus-cpp`; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing in `mineiro/hyprland` |
