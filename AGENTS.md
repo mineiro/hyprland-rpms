@@ -4,7 +4,8 @@ Session handoff notes for continuing work on this repo.
 
 ## Project intent
 
-This repository is a Fedora RPM packaging monorepo for the Hypr ecosystem, intended for COPR SCM builds.
+This repository is a Fedora RPM packaging monorepo for the Hypr ecosystem and
+adjacent desktop utilities, intended for COPR SCM builds.
 
 Goals:
 
@@ -125,6 +126,9 @@ Important:
 - `packages/app2unit/` has been added at the latest upstream release (`1.4.0`, `Vladimir-csp/app2unit`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10204233` across Fedora 43/44/rawhide on both x86_64 and aarch64. It is a noarch POSIX shell launcher package with a generated `scdoc` man page, runtime `Requires: systemd` / `xdg-utils`, and `Recommends: xdg-terminal-exec >= 0.13.0`.
 - `packages/swappy/` has been added at the latest upstream release (`1.8.0`, `jtheoof/swappy`), based on Fedora's existing `swappy` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It updates Fedora's stale `1.5.1` baseline while keeping the spec close enough for a future Fedora dist-git bump, and it is now onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10204851` across Fedora 43/44/rawhide on both x86_64 and aarch64.
 - `packages/cliphist/` has been added at the latest upstream release (`0.7.0`, `sentriz/cliphist`), based closely on Fedora's existing `cliphist` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It is a Go-based Wayland clipboard history manager with runtime `Requires: wl-clipboard` / `xdg-utils`, uses a vendored Go `Source1` tarball so builds stay offline in mock/COPR, and is now onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10204957` across Fedora 43/44/rawhide on both x86_64 and aarch64.
+- `packages/python-materialyoucolor/` has been added at the latest upstream release (`3.0.2`, `T-Dynamos/materialyoucolor-python`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205354` across Fedora 43/44/rawhide x86_64. It packages the upstream pybind11-backed quantization extension so the native Material You quantizer remains available.
+- `packages/caelestia-cli/` has been added at the latest upstream release (`1.0.6`, `caelestia-dots/cli`), locally validated via SRPM + Fedora 43/44/rawhide `mock --chain` with `python-materialyoucolor` plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205434` across Fedora 43/44/rawhide x86_64. It is a noarch Python CLI package that installs the `caelestia` command, fish completion, and Fedora/COPR runtime recommendations for the broader Caelestia stack.
+- `packages/dart-sass/` has been added at the latest upstream release (`1.97.3`, `sass/dart-sass`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 plus installed-package compile smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10206867` across Fedora 43/44/rawhide x86_64. It packages the official standalone Linux x64 release, provides `/usr/bin/sass`, and intentionally `Conflicts: rubygem-sass`.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky

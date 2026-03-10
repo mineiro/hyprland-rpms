@@ -1,6 +1,7 @@
 # hyprland-rpms
 
-Monorepo for Fedora RPM packaging of the Hypr ecosystem (Hyprland and related components), designed for COPR SCM builds.
+Monorepo for Fedora RPM packaging of the Hypr ecosystem and related desktop
+utilities, designed for COPR SCM builds.
 
 This repo is intentionally structured as a packaging monorepo, not a generic software repo:
 
@@ -19,7 +20,10 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 ├── scripts/                # Helpers (new package, bump version, spec checks)
 ├── templates/package/      # Package directory template
 └── packages/
+    ├── caelestia-cli/
+    ├── dart-sass/
     ├── hyprland/
+    ├── python-materialyoucolor/
     └── xdg-desktop-portal-hyprland/
 ```
 
@@ -30,6 +34,10 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 - Support Fedora `43`, `44`, and `rawhide`
 - Make COPR package definitions reproducible (documented and scriptable)
 - Add automation incrementally after local/manual builds are stable
+
+Recent package additions include Caelestia support components
+(`python-materialyoucolor`, `caelestia-cli`) and utility packages such as
+`dart-sass`.
 
 ## Plugin policy (current)
 

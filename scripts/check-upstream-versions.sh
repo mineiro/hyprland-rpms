@@ -7,7 +7,7 @@ Usage:
   scripts/check-upstream-versions.sh [--changed-only] [--package <name>]
 
 Options:
-  --changed-only       show only rows where local != upstream
+  --changed-only       show only rows where local != upstream or source check != ok
   --package <name>     check only one package directory under packages/
   -h, --help           show this help
 
@@ -60,6 +60,11 @@ fi
 
 if ! command -v git >/dev/null 2>&1; then
   echo "git not found"
+  exit 1
+fi
+
+if ! command -v rpmspec >/dev/null 2>&1; then
+  echo "rpmspec not found"
   exit 1
 fi
 
@@ -125,7 +130,117 @@ fetch_latest_tag_from_git() {
     | tail -n1
 }
 
-printf '%-28s %-24s %-18s %-10s %s\n' "PACKAGE" "LOCAL" "UPSTREAM" "STATUS" "UPSTREAM_GIT"
+fetch_pypi_latest_version() {
+  local dist="$1"
+  local json
+
+  json="$(curl -fsSL "https://pypi.org/pypi/${dist}/json" 2>/dev/null || true)"
+  jq -r '.info.version // empty' <<<"${json}" 2>/dev/null || true
+}
+
+fetch_npm_latest_version() {
+  local pkg="$1"
+  local json
+
+  json="$(curl -fsSL "https://registry.npmjs.org/${pkg}/latest" 2>/dev/null || true)"
+  jq -r '.version // empty' <<<"${json}" 2>/dev/null || true
+}
+
+get_source_url() {
+  local spec_path="$1"
+  local source_url
+
+  source_url="$(
+    rpmspec --define '_tmppath /tmp' -P "${spec_path}" 2>/dev/null \
+      | awk '/^Source([0-9]*)?:[[:space:]]*/ {print $2; exit}'
+  )"
+
+  if [[ -z "${source_url}" ]]; then
+    source_url="$(awk '/^Source([0-9]*)?:[[:space:]]*/ {print $2; exit}' "${spec_path}")"
+  fi
+
+  printf '%s\n' "${source_url%%#*}"
+}
+
+get_local_version() {
+  local spec_path="$1"
+  local local_version
+
+  local_version="$(
+    rpmspec --define '_tmppath /tmp' -P "${spec_path}" 2>/dev/null \
+      | awk '/^Version:[[:space:]]*/ {print $2; exit}'
+  )"
+
+  if [[ -z "${local_version}" ]]; then
+    local_version="$(awk '/^Version:[[:space:]]+/{print $2; exit}' "${spec_path}")"
+  fi
+
+  printf '%s\n' "${local_version}"
+}
+
+detect_source_kind() {
+  local source_url="$1"
+
+  if [[ -z "${source_url}" || ! "${source_url}" =~ ^https?:// ]]; then
+    printf '%s\n' "n/a"
+  elif [[ "${source_url}" =~ ^https://files\.pythonhosted\.org/packages/source/[^/]+/[^/]+/ ]]; then
+    printf '%s\n' "pypi"
+  elif [[ "${source_url}" =~ ^https://registry\.npmjs\.org/ ]]; then
+    printf '%s\n' "npm"
+  elif [[ "${source_url}" =~ ^https://github\.com/[^/]+/[^/]+/releases/download/ ]]; then
+    printf '%s\n' "github-release"
+  elif [[ "${source_url}" =~ ^https://github\.com/[^/]+/[^/]+/archive/ ]]; then
+    printf '%s\n' "github-archive"
+  elif [[ "${source_url}" =~ ^https://codeberg\.org/[^/]+/[^/]+/(archive|releases)/ ]]; then
+    printf '%s\n' "codeberg"
+  else
+    printf '%s\n' "url"
+  fi
+}
+
+fetch_source_latest_version() {
+  local source_url="$1"
+
+  if [[ "${source_url}" =~ ^https://files\.pythonhosted\.org/packages/source/[^/]+/([^/]+)/ ]]; then
+    fetch_pypi_latest_version "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  if [[ "${source_url}" =~ ^https://registry\.npmjs\.org/(@[^/]+/[^/]+)/-/ ]]; then
+    fetch_npm_latest_version "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  if [[ "${source_url}" =~ ^https://registry\.npmjs\.org/([^@/][^/]+)/-/ ]]; then
+    fetch_npm_latest_version "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  printf '%s\n' ""
+}
+
+check_source_url() {
+  local source_url="$1"
+
+  if [[ -z "${source_url}" || ! "${source_url}" =~ ^https?:// ]]; then
+    printf '%s\n' "n/a"
+    return 0
+  fi
+
+  if curl -fsSLI "${source_url}" >/dev/null 2>&1; then
+    printf '%s\n' "ok"
+    return 0
+  fi
+
+  if curl -fsSL --range 0-0 "${source_url}" -o /dev/null >/dev/null 2>&1; then
+    printf '%s\n' "ok"
+    return 0
+  fi
+
+  printf '%s\n' "missing"
+}
+
+printf '%-28s %-24s %-18s %-10s %-16s %s\n' "PACKAGE" "LOCAL" "UPSTREAM" "STATUS" "SOURCE" "UPSTREAM_GIT"
 
 for envf in "${env_files[@]}"; do
   pkg_dir="$(dirname "${envf}")"
@@ -155,7 +270,11 @@ for envf in "${env_files[@]}"; do
     continue
   fi
 
-  local_version="$(awk '/^Version:[[:space:]]+/{print $2; exit}' "${spec_path}")"
+  local_version="$(get_local_version "${spec_path}")"
+  source_url="$(get_source_url "${spec_path}")"
+  source_kind="$(detect_source_kind "${source_url}")"
+  source_check="$(check_source_url "${source_url}")"
+  source_version="$(fetch_source_latest_version "${source_url}")"
   upstream_tag=""
 
   if [[ "${upstream_git}" =~ ^https://github.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
@@ -169,9 +288,13 @@ for envf in "${env_files[@]}"; do
   fi
 
   upstream_version="${upstream_tag#v}"
+  if [[ -n "${source_version}" ]]; then
+    upstream_version="${source_version}"
+  fi
   local_base="${local_version%%^git*}"
+  source_label="${source_check}:${source_kind}"
 
-  if [[ -z "${upstream_tag}" ]]; then
+  if [[ -z "${upstream_version}" ]]; then
     upstream_version="(unknown)"
     status="unknown"
   elif [[ "${local_version}" == "${upstream_version}" ]]; then
@@ -182,9 +305,15 @@ for envf in "${env_files[@]}"; do
     status="different"
   fi
 
-  if [[ ${changed_only} -eq 1 && "${status}" == "same" ]]; then
+  if [[ ${changed_only} -eq 1 && "${status}" == "same" && "${source_check}" == "ok" ]]; then
     continue
   fi
 
-  printf '%-28s %-24s %-18s %-10s %s\n' "${pkg_name}" "${local_version}" "${upstream_version}" "${status}" "${upstream_git}"
+  printf '%-28s %-24s %-18s %-10s %-16s %s\n' \
+    "${pkg_name}" \
+    "${local_version}" \
+    "${upstream_version}" \
+    "${status}" \
+    "${source_label}" \
+    "${upstream_git}"
 done
