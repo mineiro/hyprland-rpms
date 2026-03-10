@@ -1,0 +1,9 @@
+# dart-sass
+
+Fedora RPM packaging for `dart-sass`.
+
+Current packaging target:
+
+- upstream release `1.97.3` from `sass/dart-sass`
+- official standalone Linux x64 release
+- installs the `sass` command via a symlink into the bundled upstream runtime
