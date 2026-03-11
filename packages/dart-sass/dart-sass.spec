@@ -8,8 +8,9 @@ Summary:        Sass compiler implemented in Dart
 License:        MIT
 URL:            https://github.com/sass/dart-sass
 Source0:        %{url}/releases/download/%{version}/%{name}-%{version}-linux-x64.tar.gz
+Source1:        %{url}/releases/download/%{version}/%{name}-%{version}-linux-arm64.tar.gz
 
-ExclusiveArch:  x86_64
+ExclusiveArch:  x86_64 aarch64
 
 Conflicts:      rubygem-sass
 
@@ -18,7 +19,13 @@ The reference Sass compiler implemented in Dart. This package installs the
 official standalone Linux distribution and provides the `sass` command.
 
 %prep
-%autosetup -n %{name}
+rm -rf sass src
+%ifarch x86_64
+tar -xzf %{SOURCE0} --strip-components=1
+%endif
+%ifarch aarch64
+tar -xzf %{SOURCE1} --strip-components=1
+%endif
 
 %build
 # Standalone upstream release; nothing to build.
