@@ -5,7 +5,7 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.54.1
+Version:        0.54.2
 Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 

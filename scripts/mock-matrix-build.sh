@@ -17,6 +17,7 @@ Options:
   --arch <x86_64|aarch64>    Target architecture (repeatable)
   --mode <chain|rebuild>     Build mode (default: chain)
   --addrepo <url>            Extra repository for mock buildroot (repeatable)
+                             Supports $releasever / $basearch placeholders
   --result-root <path>       Base output directory (default: repo/mock-results)
   --srpm-out <path>          SRPM output directory (default: repo/dist/srpm)
   --skip-srpm                Reuse existing SRPMs in --srpm-out
@@ -73,6 +74,26 @@ require_value() {
   local opt="$1"
   local val="${2:-}"
   [[ -n "${val}" ]] || die "${opt} requires a value"
+}
+
+resolve_repo_url() {
+  local repo="$1"
+  local rel="$2"
+  local arch="$3"
+  local releasever="$rel"
+
+  # COPR rawhide repos are published under "fedora-rawhide-$basearch", while
+  # mock expands rawhide chroots to the numeric next Fedora releasever.
+  if [[ "${rel}" == "rawhide" ]]; then
+    releasever="rawhide"
+  fi
+
+  repo="${repo//\$\{releasever\}/${releasever}}"
+  repo="${repo//\$releasever/${releasever}}"
+  repo="${repo//\$\{basearch\}/${arch}}"
+  repo="${repo//\$basearch/${arch}}"
+
+  printf '%s\n' "${repo}"
 }
 
 release_set=0
@@ -232,6 +253,9 @@ run_stamp="$(date +%Y%m%d-%H%M%S)"
 had_failure=0
 
 for cfg in "${chroots[@]}"; do
+  rel_arch="${cfg#fedora-}"
+  arch="${rel_arch##*-}"
+  rel="${rel_arch%-${arch}}"
   run_dir="${result_root}/${cfg}/matrix-${run_stamp}"
   mkdir -p "${run_dir}"
 
@@ -239,7 +263,7 @@ for cfg in "${chroots[@]}"; do
 
   extra_repo_args=()
   for repo in "${extra_repos[@]}"; do
-    extra_repo_args+=(--addrepo "$repo")
+    extra_repo_args+=(--addrepo "$(resolve_repo_url "${repo}" "${rel}" "${arch}")")
   done
 
   if [[ "${mode}" == "chain" ]]; then
