@@ -131,6 +131,12 @@ Important:
 - `packages/python-materialyoucolor/` has been added at the latest upstream release (`3.0.2`, `T-Dynamos/materialyoucolor-python`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205354` across Fedora 43/44/rawhide x86_64. It packages the upstream pybind11-backed quantization extension so the native Material You quantizer remains available.
 - `packages/caelestia-cli/` has been added at the latest upstream release (`1.0.6`, `caelestia-dots/cli`), locally validated via SRPM + Fedora 43/44/rawhide `mock --chain` with `python-materialyoucolor` plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205434` across Fedora 43/44/rawhide x86_64. It is a noarch Python CLI package that installs the `caelestia` command, fish completion, and Fedora/COPR runtime recommendations for the broader Caelestia stack.
 - `packages/dart-sass/` has been updated to the latest upstream release (`1.98.0`, `sass/dart-sass`). It packages the official standalone Linux x64 release, provides `/usr/bin/sass`, and intentionally `Conflicts: rubygem-sass`. The `1.98.0` bump has been re-validated locally via fresh SRPM generation plus a clean Fedora 43 x86_64 `mock --rebuild`; prior validation for the package family also includes Fedora 44/rawhide x86_64 rebuilds and installed-package compile smoke tests.
+- Multi-arch rollout rule learned on `2026-03-11`: when expanding packages to
+  new chroots, publish COPR-packaged dependencies first and wait for repo
+  metadata to catch up before triggering dependent packages. This applies even
+  to `BuildArch: noarch` packages; an initial `caelestia-cli` aarch64 attempt
+  failed until `python-materialyoucolor` finished publishing on the aarch64
+  chroots.
 
 - TODOs remain for:
   - continue tightening graphical VM assertions/log diagnostics (PipeWire/portal/user-service readiness, etc.) without making the harness flaky

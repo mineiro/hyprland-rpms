@@ -21,6 +21,12 @@ copr-cli build-package <owner>/<project> --name <pkg> \
   -r fedora-43-aarch64 -r fedora-44-aarch64 -r fedora-rawhide-aarch64
 ```
 
+If the package depends on another COPR package that is also being rolled out to
+those chroots, build the dependency first and wait until it is published before
+triggering the dependent package. This also applies to `BuildArch: noarch`
+packages, because COPR still resolves `BuildRequires` inside each target
+chroot.
+
 ## Add a package from this monorepo (SCM)
 
 For each package directory:
@@ -44,6 +50,13 @@ Recommended sequence:
 2. Trigger one manual build
 3. Verify dependency closure in COPR
 4. Enable webhook + auto-rebuild on push/tag
+
+For dependent package stacks, expand step 2 into a dependency-first sequence:
+
+1. Trigger the leaf dependency build first
+2. Wait for the target chroots to publish successfully
+3. Trigger dependent packages afterward
+4. Use explicit ordering rather than submitting the whole stack in parallel
 
 ## Notes on auto-updating versions
 

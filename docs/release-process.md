@@ -21,8 +21,25 @@
 7. Trigger COPR build (manual or webhook)
    - For aarch64-only rollouts on already-stable x86_64 stacks:
      - `copr-cli build-package <owner>/<project> --name <pkg> -r fedora-43-aarch64 -r fedora-44-aarch64 -r fedora-rawhide-aarch64`
+   - For packages with `BuildRequires` / runtime `Requires` on other COPR-packaged
+     dependencies, publish the dependency on the target chroots first, wait for
+     it to land in the repo metadata, and only then trigger the dependent build.
+   - If multiple dependent builds need to be queued together, prefer explicit
+     ordering (`--after-build-id` where applicable) instead of submitting the
+     whole stack simultaneously.
 8. Run repoclosure checks on the COPR project
 9. Run smoke tests (container CI baseline; local KVM for deeper runtime checks when relevant)
+
+## Dependency-first rollout rule
+
+- Do not treat "noarch" as exempt from dependency sequencing.
+- A noarch package still runs `builddep` inside each target chroot, so a new
+  aarch64 rollout can fail if one of its `BuildRequires` is only published on
+  x86_64 at the time the build starts.
+- Recent example: `caelestia-cli` aarch64 rollout required
+  `python3-materialyoucolor`; triggering both at once caused `caelestia-cli`
+  to fail in COPR until `python-materialyoucolor` finished publishing on the
+  aarch64 chroots.
 
 ## Hyprland plugins compatibility gate
 
