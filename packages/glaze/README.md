@@ -1,5 +1,8 @@
 # glaze
 
-Starter packaging directory for `glaze`.
+Fedora RPM packaging for `glaze`.
 
-Update `glaze.spec` and `package.env` before first build.
+Current packaging target:
+
+- upstream release `7.2.0` from `stephenberry/glaze`
+- pinned to the upstream `7.x` series for Hyprland `0.54.x` compatibility
