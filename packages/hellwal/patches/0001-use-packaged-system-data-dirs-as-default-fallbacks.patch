@@ -1,0 +1,266 @@
+--- a/hellwal.c
++++ b/hellwal.c
+@@ -132,6 +132,12 @@
+ #define PALETTE_SIZE 16
+ #define BINS 8
+ 
++#define DEFAULT_TEMPLATE_FOLDER "~/.config/hellwal/templates"
++#define DEFAULT_THEME_FOLDER "~/.config/hellwal/themes"
++#define DEFAULT_OUTPUT_FOLDER "~/.cache/hellwal/"
++#define SYSTEM_TEMPLATE_FOLDER "/usr/share/hellwal/templates"
++#define SYSTEM_THEME_FOLDER "/usr/share/hellwal/themes"
++
+ /* set default value for global char* variables */
+ #define SET_DEF(x, s) \
+     if (x == NULL) \
+@@ -230,6 +236,7 @@
+ 
+     /* folder that contains templates */
+     char *TEMPLATE_FOLDER;
++    uint8_t TEMPLATE_FOLDER_EXPLICIT : 1;
+ 
+     /* 
+      * output folder for generated templates,
+@@ -249,6 +256,7 @@
+ 
+     /* folder that contains static themes */
+     char *THEME_FOLDER;
++    uint8_t THEME_FOLDER_EXPLICIT : 1;
+ 
+     /* pick random THING (image or theme) of provided folder path:
+      *   - provide path to IMG using *ARGS.IMAGE
+@@ -296,10 +304,12 @@
+     .LIGHT_MODE = 0,
+     .COLOR_MODE = 0,
+     .TEMPLATE_FOLDER = NULL,
++    .TEMPLATE_FOLDER_EXPLICIT = 0,
+     .OUTPUT = NULL,
+     .JSON = 0,
+     .THEME = NULL,
+     .THEME_FOLDER = NULL,
++    .THEME_FOLDER_EXPLICIT = 0,
+     .RANDOM = 0,
+     .DEBUG = 0,
+     .SCRIPT = NULL,
+@@ -393,6 +403,7 @@
+ void run_script(const char *script);
+ void hellwal_usage(const char *name);
+ void remove_extra_whitespaces(char *str);
++int dir_has_regular_files(const char *path);
+ 
+ /* logging */
+ void eu(const char *format, ...);
+@@ -454,6 +465,7 @@
+ 
+ /* themes */
+ char *load_theme(char *themename);
++char *load_theme_from_dir(const char *dir_path, const char *themename);
+ PALETTE process_themeing(char *theme);
+ int process_theme(char *t, PALETTE *pal);
+ 
+@@ -496,9 +508,9 @@
+     printf("  --static-foreground \"#hex\"         Set static foreground color\n");
+     printf("  -h, --help                         Display this help and exit\n\n");
+     printf("Defaults:\n");
+-    printf("  Template folder: ~/.config/hellwal/templates\n");
+-    printf("  Theme folder: ~/.config/hellwal/themes\n");
+-    printf("  Output folder: ~/.cache/hellwal/\n\n");
++    printf("  Template folder: %s (fallback: %s)\n", DEFAULT_TEMPLATE_FOLDER, SYSTEM_TEMPLATE_FOLDER);
++    printf("  Theme folder: %s (fallback: %s)\n", DEFAULT_THEME_FOLDER, SYSTEM_THEME_FOLDER);
++    printf("  Output folder: %s\n\n", DEFAULT_OUTPUT_FOLDER);
+ }
+ 
+ /* set given arguments */
+@@ -594,7 +606,10 @@
+         else if ((strcmp(argv[i], "--template-folder") == 0 || strcmp(argv[i], "-f") == 0))
+         {
+             if (i + 1 < argc)
++            {
+                 ARGS.TEMPLATE_FOLDER = argv[++i];
++                ARGS.TEMPLATE_FOLDER_EXPLICIT = 1;
++            }
+             else {
+                 argc = -1;
+             }
+@@ -618,7 +633,10 @@
+         else if ((strcmp(argv[i], "--theme-folder") == 0 || strcmp(argv[i], "-k") == 0))
+         {
+             if (i + 1 < argc)
++            {
+                 ARGS.THEME_FOLDER = argv[++i];
++                ARGS.THEME_FOLDER_EXPLICIT = 1;
++            }
+             else {
+                 argc = -1;
+             }
+@@ -743,9 +761,9 @@
+         ARGS.OFFSET_GLOBAL += ARGS.BRIGHTNESS_OFFSET;
+ 
+     /* If not specified, set default ones */
+-    SET_DEF(ARGS.OUTPUT, "~/.cache/hellwal/");
+-    SET_DEF(ARGS.THEME_FOLDER , "~/.config/hellwal/themes");
+-    SET_DEF(ARGS.TEMPLATE_FOLDER, "~/.config/hellwal/templates");
++    SET_DEF(ARGS.OUTPUT, DEFAULT_OUTPUT_FOLDER);
++    SET_DEF(ARGS.THEME_FOLDER , DEFAULT_THEME_FOLDER);
++    SET_DEF(ARGS.TEMPLATE_FOLDER, DEFAULT_TEMPLATE_FOLDER);
+ 
+     return 0;
+ }
+@@ -911,6 +929,43 @@
+         mkdir(path, 0700);
+ }
+ 
++int dir_has_regular_files(const char *path)
++{
++    if (path == NULL)
++        return 0;
++
++    DIR *dir = opendir(path);
++    if (dir == NULL)
++        return 0;
++
++    struct dirent *entry;
++    struct stat st;
++    int found = 0;
++
++    while ((entry = readdir(dir)) != NULL)
++    {
++        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
++            continue;
++
++        size_t full_path_len = strlen(path) + strlen(entry->d_name) + 2;
++        char *full_path = malloc(full_path_len);
++        if (full_path == NULL)
++            continue;
++
++        snprintf(full_path, full_path_len, "%s/%s", path, entry->d_name);
++        if (stat(full_path, &st) == 0 && S_ISREG(st.st_mode))
++        {
++            found = 1;
++            free(full_path);
++            break;
++        }
++        free(full_path);
++    }
++
++    closedir(dir);
++    return found;
++}
++
+ /* run script from given path */
+ void run_script(const char *script)
+ {
+@@ -1912,10 +1967,20 @@
+         log_c("Processing templates: ");
+ 
+     TEMPLATE **templates;
+-    size_t templates_count, t_success = 0;
++    size_t templates_count = 0, t_success = 0;
++    const char *template_dir = ARGS.TEMPLATE_FOLDER;
++
++    if (ARGS.TEMPLATE_FOLDER_EXPLICIT == 0 &&
++        strcmp(ARGS.TEMPLATE_FOLDER, SYSTEM_TEMPLATE_FOLDER) != 0 &&
++        !dir_has_regular_files(ARGS.TEMPLATE_FOLDER))
++    {
++        template_dir = SYSTEM_TEMPLATE_FOLDER;
++        if (ARGS.DEBUG != 0)
++            log_c("Falling back to packaged templates: %s", template_dir);
++    }
+ 
+     /* Process templates loaded from folder */
+-    templates = get_template_structure_dir(ARGS.TEMPLATE_FOLDER, &templates_count);
++    templates = get_template_structure_dir(template_dir, &templates_count);
+     if (templates == NULL) return;
+ 
+     check_output_dir(ARGS.OUTPUT);
+@@ -2337,40 +2402,65 @@
+     return 1;
+ }
+ 
++char *load_theme_from_dir(const char *dir_path, const char *themename)
++{
++    if (dir_path == NULL || themename == NULL)
++        return NULL;
++
++    DIR *dir = opendir(dir_path);
++    if (dir == NULL)
++        return NULL;
++
++    struct dirent *entry;
++    while ((entry = readdir(dir)) != NULL)
++    {
++        if (strcmp(entry->d_name, themename) != 0)
++            continue;
++
++        size_t path_len = strlen(dir_path) + strlen(entry->d_name) + 2;
++        char *path = malloc(path_len);
++        if (path == NULL) {
++            perror("Failed to allocate memory for file path");
++            closedir(dir);
++            return NULL;
++        }
++
++        snprintf(path, path_len, "%s/%s", dir_path, entry->d_name);
++        char *theme = load_file(path);
++        free(path);
++        if (theme != NULL)
++        {
++            closedir(dir);
++            return theme;
++        }
++    }
++
++    closedir(dir);
++    return NULL;
++}
++
+ /*
+  * check in directory for theme with provided name,
+  * if not exist, try to open it as a path */
+ char *load_theme(char *themename)
+ {
+-    log_c("Loading static theme: %s", ARGS.THEME);
+-    DIR *dir = opendir(ARGS.THEME_FOLDER);
+     char *t = NULL;
+-    struct dirent *entry;
++    log_c("Loading static theme: %s", ARGS.THEME);
+ 
+-    if (dir == NULL)
+-        warn("Cannot access directory: %s", ARGS.THEME_FOLDER);
+-    else
+-    {
+-        while ((entry = readdir(dir)) != NULL)
+-        {
+-            if (entry->d_type == DT_REG && strcmp(entry->d_name, themename) == 0)
+-            {
+-                size_t path_len = strlen(ARGS.THEME_FOLDER) + strlen(entry->d_name) + 2; // +2 for '/' and '\0'
+-                char *path = malloc(path_len);
+-                if (path == NULL) {
+-                    perror("Failed to allocate memory for file path");
+-                    closedir(dir);
+-                    return NULL;
+-                }
++    t = load_theme_from_dir(ARGS.THEME_FOLDER, themename);
++    if (t != NULL)
++        return t;
+ 
+-                sprintf(path, "%s/%s", ARGS.THEME_FOLDER, entry->d_name); 
+-                t = load_file(path);
+-                
+-                if (t != NULL)
+-                    return t;
+-            }
+-        }
++    if (ARGS.THEME_FOLDER_EXPLICIT == 0 &&
++        strcmp(ARGS.THEME_FOLDER, SYSTEM_THEME_FOLDER) != 0)
++    {
++        if (ARGS.DEBUG != 0)
++            log_c("Theme not found in %s, trying %s", ARGS.THEME_FOLDER, SYSTEM_THEME_FOLDER);
++        t = load_theme_from_dir(SYSTEM_THEME_FOLDER, themename);
++        if (t != NULL)
++            return t;
+     }
++
+     t = load_file(themename);
+     if (t != NULL)
+         return t;
