@@ -1,5 +1,5 @@
 Name:           swayosd
-Version:        0.3.0
+Version:        0.3.1
 Release:        %autorelease
 Summary:        On-screen display service for volume, brightness, lock keys, and media keys
 
