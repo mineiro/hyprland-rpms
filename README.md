@@ -36,8 +36,9 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 - Add automation incrementally after local/manual builds are stable
 
 Recent package additions include Caelestia support components
-(`python-materialyoucolor`, `caelestia-cli`) and utility packages such as
-`dart-sass`.
+(`python-materialyoucolor`, `caelestia-cli`), utility packages such as
+`dart-sass`, and newer Wayland desktop tools including `swayosd` and
+`departure`.
 
 ## Plugin policy (current)
 
