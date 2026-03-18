@@ -1,0 +1,4 @@
+# Vendored Rust/Go archives are generated locally during SRPM creation rather
+# than fetched from a remote URL, so rpmlint's URL-only Source1 check is a
+# false positive for this repo's offline build workflow.
+addFilter(r"invalid-url Source1: .*?-vendor\.tar\.(gz|xz)$")

@@ -23,9 +23,8 @@ done
 if command -v rpmlint >/dev/null 2>&1; then
   echo
   echo "Running rpmlint..."
-  rpmlint "${specs[@]}"
+  rpmlint -r "${repo_root}/.rpmlintrc" "${specs[@]}"
 else
   echo
   echo "rpmlint not installed; skipping lint phase"
 fi
-
