@@ -127,16 +127,14 @@ if [[ -z "${source1_name}" ]]; then
   exit 0
 fi
 
-if [[ -f "${source_dir}/${source1_name}" ]]; then
-  exit 0
-fi
-
 src0_name="$(awk '/^Source0:[[:space:]]*/ { print $2 }' <<<"${spec_rendered}")"
 src0_name="${src0_name##*/}"
 [[ -n "${src0_name}" ]] || { echo "Could not determine Source0 from ${spec_file}"; exit 1; }
 
 src0_path="${source_dir}/${src0_name}"
 [[ -f "${src0_path}" ]] || { echo "Missing Source0 tarball: ${src0_path}"; exit 1; }
+
+rm -f "${source_dir}/${source1_name}"
 
 tmpdir="$(mktemp -d)"
 gocache="$(mktemp -d)"
