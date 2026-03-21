@@ -114,6 +114,7 @@ fi
 spec_file="$1"
 source_dir="$2"
 go_subdir="$3"
+spec_dir="$(dirname "${spec_file}")"
 
 [[ -n "${go_subdir}" ]] || exit 0
 command -v go >/dev/null 2>&1 || { echo "go not found"; exit 1; }
@@ -132,7 +133,30 @@ src0_name="${src0_name##*/}"
 [[ -n "${src0_name}" ]] || { echo "Could not determine Source0 from ${spec_file}"; exit 1; }
 
 src0_path="${source_dir}/${src0_name}"
-[[ -f "${src0_path}" ]] || { echo "Missing Source0 tarball: ${src0_path}"; exit 1; }
+if [[ ! -f "${src0_path}" && -f "${spec_dir}/${src0_name}" ]]; then
+  src0_path="${spec_dir}/${src0_name}"
+fi
+if [[ ! -f "${src0_path}" && -f "${spec_dir}/sources/${src0_name}" ]]; then
+  src0_path="${spec_dir}/sources/${src0_name}"
+fi
+if [[ ! -f "${src0_path}" && -f "${spec_dir}/SOURCES/${src0_name}" ]]; then
+  src0_path="${spec_dir}/SOURCES/${src0_name}"
+fi
+
+rpm_sourcedir="$(rpm --eval '%{_sourcedir}' 2>/dev/null || true)"
+if [[ ! -f "${src0_path}" && -n "${rpm_sourcedir}" && -f "${rpm_sourcedir}/${src0_name}" ]]; then
+  src0_path="${rpm_sourcedir}/${src0_name}"
+fi
+if [[ ! -f "${src0_path}" && -f "${HOME}/rpmbuild/SOURCES/${src0_name}" ]]; then
+  src0_path="${HOME}/rpmbuild/SOURCES/${src0_name}"
+fi
+
+[[ -f "${src0_path}" ]] || { echo "Missing Source0 tarball: ${source_dir}/${src0_name}"; exit 1; }
+
+if [[ "${src0_path}" != "${source_dir}/${src0_name}" ]]; then
+  cp -f "${src0_path}" "${source_dir}/${src0_name}"
+  src0_path="${source_dir}/${src0_name}"
+fi
 
 rm -f "${source_dir}/${source1_name}"
 
