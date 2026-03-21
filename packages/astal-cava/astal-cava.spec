@@ -1,0 +1,63 @@
+%global astal_commit 41b50290c6a1cdce7b482897c22fe49286912b9a
+%global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
+%global snapshot_date 20260319
+
+Name:           astal-cava
+Version:        0.1.0
+Release:        %autorelease
+Summary:        CAVA integration library for Astal
+
+License:        LGPL-2.1-only
+URL:            https://github.com/Aylur/astal
+Source0:        %{url}/archive/%{astal_commit}/astal-%{astal_shortcommit}.tar.gz
+
+BuildRequires:  gcc
+BuildRequires:  meson
+BuildRequires:  vala
+BuildRequires:  gobject-introspection-devel
+BuildRequires:  pkgconfig(gio-2.0)
+BuildRequires:  pkgconfig(gobject-2.0)
+BuildRequires:  pkgconfig(libcava) >= 0.10.7
+
+%package        devel
+Summary:        Development files for %{name}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description
+CAVA integration library for Astal-based applications.
+
+%description devel
+Development files for %{name}.
+
+%prep
+%autosetup -n astal-%{astal_commit} -p1
+
+%build
+pushd lib/cava
+%meson
+%meson_build
+popd
+
+%install
+pushd lib/cava
+%meson_install
+popd
+
+%check
+:
+
+%files
+%license LICENSE
+%{_datadir}/gir-1.0/AstalCava-0.1.gir
+%{_libdir}/girepository-1.0/AstalCava-0.1.typelib
+%{_libdir}/libastal-cava.so.0{,.*}
+
+%files devel
+%{_includedir}/astal-cava.h
+%{_libdir}/libastal-cava.so
+%{_libdir}/pkgconfig/astal-cava-0.1.pc
+%{_datadir}/vala/vapi/astal-cava-0.1.vapi
+%{_datadir}/vala/vapi/astal-cava-0.1.deps
+
+%changelog
+%autochangelog

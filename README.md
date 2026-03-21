@@ -40,7 +40,12 @@ Recent package additions include Caelestia support components
 `dart-sass`, and newer Wayland desktop tools including `swayosd` and
 `departure`. The repo now also carries the AGS/Astal userspace stack
 (`gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`,
-`aylurs-gtk-shell`) so Hyprland users do not need a separate COPR just to
+`astal-apps`, `astal-auth`, `astal-battery`, `astal-bluetooth`,
+`astal-cava`, `astal-greet`, `astal-mpris`, `astal-network`,
+`astal-notifd`, `astal-power-profiles`, `astal-river`, `astal-tray`,
+`astal-wireplumber`, `astal-wl`, `aylurs-gtk-shell`) plus the helper
+dependencies they need (`appmenu-glib-translator`, `wl-vapi-gen`,
+`libcava`), so Hyprland users do not need a separate COPR just to
 install AGS-related packages.
 
 ## Plugin policy (current)

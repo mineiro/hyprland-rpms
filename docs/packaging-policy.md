@@ -65,8 +65,17 @@ Suggested next ecosystem packages after the core chain stabilizes:
 - Keep `aylurs-gtk-shell` as the RPM name; Fedora already ships an unrelated
   `ags` package.
 - Keep the imported Astal libraries on one pinned monorepo snapshot so API/ABI
-  expectations stay aligned across `astal-io`, `astal3`, `astal4`, and
-  `astal-hyprland`.
+  expectations stay aligned across `astal-io`, `astal3`, `astal4`,
+  `astal-hyprland`, `astal-apps`, `astal-auth`, `astal-battery`,
+  `astal-bluetooth`, `astal-greet`, `astal-mpris`, `astal-network`,
+  `astal-notifd`, `astal-power-profiles`, `astal-wireplumber`,
+  `astal-wl`, `astal-tray`, `astal-river`, and `astal-cava`.
+- Keep optional Astal integrations split into separate RPMs instead of
+  bundling them into one `astal-libs` package, so AGS users only install the
+  dependency stacks they actually need.
+- Package external prerequisites separately as `appmenu-glib-translator`,
+  `wl-vapi-gen`, and `libcava` so `astal-tray`, `astal-river`, and
+  `astal-cava` stay unbundled.
 - Keep `gnim` installed under `%{_datadir}/ags/js/node_modules/gnim` until
   upstream AGS stops expecting the npm-style runtime tree.
 - Current `aylurs-gtk-shell` downstream patch set covers packaged `gnim`,
@@ -83,6 +92,23 @@ Suggested AGS / Astal package order:
 4. `astal4`
 5. `astal-hyprland`
 6. `aylurs-gtk-shell`
+7. `astal-apps`
+8. `astal-auth`
+9. `astal-battery`
+10. `astal-bluetooth`
+11. `astal-greet`
+12. `astal-mpris`
+13. `astal-network`
+14. `astal-notifd`
+15. `astal-power-profiles`
+16. `astal-wireplumber`
+17. `appmenu-glib-translator`
+18. `wl-vapi-gen`
+19. `libcava`
+20. `astal-wl`
+21. `astal-tray`
+22. `astal-river`
+23. `astal-cava`
 
 ## What to avoid (fresh-start guardrails)
 
