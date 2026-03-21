@@ -8,6 +8,104 @@ Usage:
 USAGE
 }
 
+normalize_vendor_modules() {
+  local go_mod="$1"
+  local modules_txt="$2"
+  local explicit_tmp normalized_tmp
+
+  [[ -f "${modules_txt}" ]] || return 0
+
+  explicit_tmp="$(mktemp)"
+  normalized_tmp="$(mktemp)"
+
+  awk '
+    function emit_requirement(module, version) {
+      if (module == "" || version == "") {
+        return
+      }
+
+      sub(/[[:space:]]+\/\/.*/, "", version)
+      print module "\t" version
+    }
+
+    /^[[:space:]]*require[[:space:]]*\(/ {
+      in_require_block = 1
+      next
+    }
+
+    in_require_block && /^[[:space:]]*\)/ {
+      in_require_block = 0
+      next
+    }
+
+    in_require_block {
+      emit_requirement($1, $2)
+      next
+    }
+
+    /^[[:space:]]*require[[:space:]]+/ {
+      emit_requirement($2, $3)
+    }
+  ' "${go_mod}" > "${explicit_tmp}"
+
+  if [[ ! -s "${explicit_tmp}" ]]; then
+    rm -f "${explicit_tmp}" "${normalized_tmp}"
+    return 0
+  fi
+
+  awk -v explicit_file="${explicit_tmp}" '
+    BEGIN {
+      while ((getline line < explicit_file) > 0) {
+        split(line, fields, "\t")
+        if (fields[1] != "" && fields[2] != "") {
+          explicit[fields[1] SUBSEP fields[2]] = 1
+        }
+      }
+      close(explicit_file)
+    }
+
+    function flush_pending() {
+      if (pending_header && should_mark_explicit) {
+        print "## explicit"
+      }
+
+      pending_header = 0
+      should_mark_explicit = 0
+    }
+
+    /^# / {
+      flush_pending()
+      print
+
+      pending_header = 1
+      should_mark_explicit = explicit[$2 SUBSEP $3]
+      next
+    }
+
+    {
+      if (pending_header) {
+        if ($0 ~ /^## explicit([;[:space:]]|$)/) {
+          should_mark_explicit = 0
+        } else if (should_mark_explicit) {
+          print "## explicit"
+          should_mark_explicit = 0
+        }
+
+        pending_header = 0
+      }
+
+      print
+    }
+
+    END {
+      flush_pending()
+    }
+  ' "${modules_txt}" > "${normalized_tmp}"
+
+  mv "${normalized_tmp}" "${modules_txt}"
+  rm -f "${explicit_tmp}"
+}
+
 if [[ $# -ne 3 ]]; then
   usage
   exit 1
@@ -59,6 +157,7 @@ gosrc="${srcdir}/${go_subdir}"
 (
   cd "${gosrc}"
   GOCACHE="${gocache}" GOMODCACHE="${gomodcache}" GO111MODULE=on go mod vendor
+  normalize_vendor_modules "${gosrc}/go.mod" "${gosrc}/vendor/modules.txt"
 )
 
 tar -cJf "${source_dir}/${source1_name}" -C "${gosrc}" vendor
