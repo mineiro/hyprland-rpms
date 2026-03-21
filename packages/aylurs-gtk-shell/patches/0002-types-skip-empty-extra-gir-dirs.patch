@@ -1,0 +1,29 @@
+From 0f4bfa1e8d8cc93db67d8f7a68d6306480a48e77 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 8 Mar 2026 00:00:00 +0000
+Subject: [PATCH] types: skip empty EXTRA_GIR_DIRS entries
+
+When EXTRA_GIR_DIRS is unset, strings.Split returns a single empty
+entry. The current code still appends "-g" for that empty path, which
+breaks `ags init` and `ags types` on an otherwise valid installation.
+---
+ cli/cmd/types.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/cli/cmd/types.go b/cli/cmd/types.go
+index 93b32e9..7757402 100644
+--- a/cli/cmd/types.go
++++ b/cli/cmd/types.go
+@@ -101,6 +101,10 @@ func genTypes(configDir, pattern string, verbose bool) {
+ 	}, strings.Split(os.Getenv("EXTRA_GIR_DIRS"), ":")...)
+ 
+ 	for _, path := range dataDirs {
++		if strings.TrimSpace(path) == "" {
++			continue
++		}
++
+ 		flags = append(flags, "-g", path)
+ 	}
+ 
+-- 
+2.49.0

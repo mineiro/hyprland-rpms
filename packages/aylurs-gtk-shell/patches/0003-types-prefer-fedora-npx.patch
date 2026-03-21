@@ -1,0 +1,71 @@
+From 4b9c1d7d5d6f8cc9b51a7ff0ca1d2d7f9f5a1d31 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 8 Mar 2026 00:00:00 +0000
+Subject: [PATCH] types: prefer the packaged npx binary
+
+On Fedora systems, AGS should use the distro-provided npx from
+nodejs-npm instead of inheriting whatever happens to be first in a
+user-managed PATH. That keeps the RPM tied to Fedora packages by
+default while still allowing a PATH fallback if /usr/bin/npx is absent.
+---
+ cli/cmd/root.go  | 1 +
+ cli/cmd/types.go | 9 +++++++++
+ cli/main.go      | 2 ++
+ 3 files changed, 12 insertions(+)
+
+diff --git a/cli/cmd/root.go b/cli/cmd/root.go
+index 5b6daa0..3567990 100644
+--- a/cli/cmd/root.go
++++ b/cli/cmd/root.go
+@@ -28,6 +28,7 @@ type Env struct {
+ 	Data           embed.FS
+ 	Gtk4LayerShell string
+ 	AgsJsPackage   string
++	Npx            string
+ 	TSForGir       string
+ 	Bash           string
+ 	Gjs            string
+diff --git a/cli/cmd/types.go b/cli/cmd/types.go
+index b4d9c15..d09539d 100644
+--- a/cli/cmd/types.go
++++ b/cli/cmd/types.go
+@@ -83,7 +83,16 @@ func showCursor() {
+ func genTypes(configDir, pattern string, verbose bool) {
+ 	lib.Mkdir(configDir)
+ 
+-	npx, err := exec.LookPath("npx")
++	var err error
++	npx := env.Npx
++	if npx == "" {
++		npx = "/usr/bin/npx"
++	}
++
++	if _, statErr := os.Stat(npx); statErr != nil {
++		npx, err = exec.LookPath("npx")
++	}
++
+ 	if err != nil {
+ 		lib.Err(err)
+ 	}
+diff --git a/cli/main.go b/cli/main.go
+index 1d0328f..10cf699 100644
+--- a/cli/main.go
++++ b/cli/main.go
+@@ -17,6 +17,7 @@ var (
+ 	tsForGir       = "@ts-for-gir/cli"
+ 	gtk4LayerShell = "/usr/lib/libgtk4-layer-shell.so"
+ 	agsJsPackage   = "/usr/share/ags/js"
++	npx            = "/usr/bin/npx"
+ 	bash           = "/bin/sh"
+ 	gjs            = "/bin/gjs"
+ 	cat            = "/bin/cat"
+@@ -29,6 +30,7 @@ func main() {
+ 		Version:        version,
+ 		Data:           data,
+ 		Gtk4LayerShell: gtk4LayerShell,
++		Npx:            npx,
+ 		AgsJsPackage:   agsJsPackage,
+ 		TSForGir:       tsForGir,
+ 		Gjs:            gjs,
+-- 
+2.49.0

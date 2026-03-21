@@ -1,0 +1,132 @@
+From 454515471b1148d9fde4f3aa059fafef0299c596 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 8 Mar 2026 02:04:47 -0300
+Subject: [PATCH] types: generate only the core modules by default
+
+---
+ cli/cmd/init.go  |  2 +-
+ cli/cmd/types.go | 56 +++++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 47 insertions(+), 11 deletions(-)
+
+diff --git a/cli/cmd/init.go b/cli/cmd/init.go
+index 83aff91..3605be2 100644
+--- a/cli/cmd/init.go
++++ b/cli/cmd/init.go
+@@ -78,6 +78,6 @@ func initConfig(cmd *cobra.Command, args []string) {
+ 	lib.Ln(env.AgsJsPackage, initDir+"/node_modules/ags")
+ 	lib.Ln(env.AgsJsPackage+"/node_modules/gnim", initDir+"/node_modules/gnim")
+ 
+-	genTypes(initDir, "*", false)
++	genTypes(initDir, defaultTypeModules(initDir, gtkVersion), false)
+ 	fmt.Println(lib.Green("project ready") + " at " + lib.Cyan(initDir))
+ }
+diff --git a/cli/cmd/types.go b/cli/cmd/types.go
+index 6104a3a..235ff37 100644
+--- a/cli/cmd/types.go
++++ b/cli/cmd/types.go
+@@ -19,13 +19,13 @@ var (
+ )
+ 
+ var typesCommand = &cobra.Command{
+-	Use:     "types [pattern]",
++	Use:     "types [module...]",
+ 	Short:   "Generate TypeScript types",
+-	Args:    cobra.MaximumNArgs(1),
+-	Example: `  ags types Astal* --ignore Gtk3 --ignore Astal3`,
++	Args:    cobra.ArbitraryArgs,
++	Example: "  ags types Gtk-4.0 Astal-4.0\n  ags types AstalHyprland-0.1 --ignore Gtk3 --ignore Astal3",
+ 	Run: func(cmd *cobra.Command, args []string) {
+ 		if updatePkg {
+-			lib.WriteFile(targetDir+"/tsconfig.json", lib.GetTsconfig(targetDir, 0))
++			lib.WriteFile(targetDir+"/tsconfig.json", lib.GetTsconfig(targetDir, gtkVersion))
+ 
+ 			lib.Mkdir(targetDir + "/node_modules")
+ 			lib.Rm(targetDir + "/node_modules/ags")
+@@ -38,20 +38,54 @@ var typesCommand = &cobra.Command{
+ 			}
+ 		}
+ 
+-		if len(args) > 0 {
+-			genTypes(targetDir, args[0], verbose)
+-		} else {
+-			genTypes(targetDir, "*", verbose)
++		modules := args
++		if len(modules) == 0 {
++			modules = defaultTypeModules(targetDir, gtkVersion)
+ 		}
++
++		genTypes(targetDir, modules, verbose)
+ 	},
+ }
+ 
++func defaultTypeModules(configDir string, gtk uint) []string {
++	if gtk == 0 {
++		if infile, found := findAppEntry(configDir); found {
++			gtk = inferGtkVersion(infile)
++		} else {
++			gtk = 4
++		}
++	}
++
++	if gtk == 3 {
++		return []string{"Gtk-3.0", "Astal-3.0"}
++	}
++
++	return []string{"Gtk-4.0", "Astal-4.0"}
++}
++
++func findAppEntry(dir string) (string, bool) {
++	path, err := filepath.Abs(dir)
++	if err != nil {
++		return "", false
++	}
++
++	infile := filepath.Join(path, "app")
++	exts := []string{"js", "ts", "jsx", "tsx"}
++	for _, ext := range exts {
++		if _, err := os.Stat(infile + "." + ext); err == nil {
++			return infile + "." + ext, true
++		}
++	}
++	return "", false
++}
++
+ func init() {
+ 	f := typesCommand.Flags()
+ 
+ 	f.BoolVarP(&verbose, "verbose", "v", false, "print ts-for-gir logs")
+ 	f.BoolVarP(&updatePkg, "update", "u", false, "update tsconfig and linked ags package")
+ 	f.StringVarP(&targetDir, "directory", "d", defaultConfigDir(), "target directory")
++	f.UintVarP(&gtkVersion, "gtk", "g", 0, "gtk version")
+ 	f.StringArrayVarP(&ignoreModules, "ignore", "i", []string{}, "modules that should be ignored")
+ }
+ 
+@@ -80,7 +114,7 @@ func showCursor() {
+ 	fmt.Print("\033[?25h")
+ }
+ 
+-func genTypes(configDir, pattern string, verbose bool) {
++func genTypes(configDir string, modules []string, verbose bool) {
+ 	lib.Mkdir(configDir)
+ 
+ 	var err error
+@@ -98,7 +132,7 @@ func genTypes(configDir, pattern string, verbose bool) {
+ 	}
+ 
+ 	flags := []string{
+-		"-y", env.TSForGir, "generate", pattern,
++		"-y", env.TSForGir, "generate",
+ 		"--ignoreVersionConflicts",
+ 		"--outdir", filepath.Join(configDir, "@girs"),
+ 	}
+@@ -109,6 +143,8 @@ func genTypes(configDir, pattern string, verbose bool) {
+ 		"/usr/share/*/gir-1.0",
+ 	}, strings.Split(os.Getenv("EXTRA_GIR_DIRS"), ":")...)
+ 
++	flags = append(flags, modules...)
++
+ 	for _, path := range dataDirs {
+ 		if strings.TrimSpace(path) == "" {
+ 			continue
+-- 
+2.53.0

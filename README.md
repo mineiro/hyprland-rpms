@@ -38,7 +38,10 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 Recent package additions include Caelestia support components
 (`python-materialyoucolor`, `caelestia-cli`), utility packages such as
 `dart-sass`, and newer Wayland desktop tools including `swayosd` and
-`departure`.
+`departure`. The repo now also carries the AGS/Astal userspace stack
+(`gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`,
+`aylurs-gtk-shell`) so Hyprland users do not need a separate COPR just to
+install AGS-related packages.
 
 ## Plugin policy (current)
 

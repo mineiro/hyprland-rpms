@@ -60,6 +60,30 @@ Suggested next ecosystem packages after the core chain stabilizes:
 4. `hyprpaper` (latest `0.8.x` path depends on `hyprtoolkit`)
 5. `swayosd` (Rust + Meson package; keep vendored `Source1` workflow for offline mock/COPR builds)
 
+## AGS / Astal specifics
+
+- Keep `aylurs-gtk-shell` as the RPM name; Fedora already ships an unrelated
+  `ags` package.
+- Keep the imported Astal libraries on one pinned monorepo snapshot so API/ABI
+  expectations stay aligned across `astal-io`, `astal3`, `astal4`, and
+  `astal-hyprland`.
+- Keep `gnim` installed under `%{_datadir}/ags/js/node_modules/gnim` until
+  upstream AGS stops expecting the npm-style runtime tree.
+- Current `aylurs-gtk-shell` downstream patch set covers packaged `gnim`,
+  safer GIR selection defaults, Fedora's packaged `npx`, and the correct
+  `gtk4-layer-shell` soname.
+- `ags init` / `ags types` still fetch `@ts-for-gir/cli` via `npx`; packaging
+  that dependency is the next step for a fully offline AGS bootstrap flow.
+
+Suggested AGS / Astal package order:
+
+1. `gnim`
+2. `astal-io`
+3. `astal3`
+4. `astal4`
+5. `astal-hyprland`
+6. `aylurs-gtk-shell`
+
 ## What to avoid (fresh-start guardrails)
 
 - Large top-level flat directories for dozens of unrelated packages

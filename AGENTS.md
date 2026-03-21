@@ -133,6 +133,8 @@ Important:
 - `packages/python-materialyoucolor/` has been added at the latest upstream release (`3.0.2`, `T-Dynamos/materialyoucolor-python`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205354` across Fedora 43/44/rawhide x86_64. It packages the upstream pybind11-backed quantization extension so the native Material You quantizer remains available.
 - `packages/caelestia-cli/` has been added at the latest upstream release (`1.0.6`, `caelestia-dots/cli`), locally validated via SRPM + Fedora 43/44/rawhide `mock --chain` with `python-materialyoucolor` plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205434` across Fedora 43/44/rawhide x86_64. It is a noarch Python CLI package that installs the `caelestia` command, fish completion, and Fedora/COPR runtime recommendations for the broader Caelestia stack.
 - `packages/dart-sass/` has been updated to the latest upstream release (`1.98.0`, `sass/dart-sass`). It packages the official standalone Linux x64 release, provides `/usr/bin/sass`, and intentionally `Conflicts: rubygem-sass`. The `1.98.0` bump has been re-validated locally via fresh SRPM generation plus a clean Fedora 43 x86_64 `mock --rebuild`; prior validation for the package family also includes Fedora 44/rawhide x86_64 rebuilds and installed-package compile smoke tests.
+- On `2026-03-21`, the AGS/Astal stack was imported from the working `~/Code/ags-rpms` repo into this monorepo so users can install it from the same COPR as the Hyprland packages. New package directories now exist for `gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`, and `aylurs-gtk-shell`; `make check-specs` passes, local SRPM generation passes, and `mock --chain` passes on Fedora 43/44/rawhide x86_64 for the full stack. The Astal libraries were then bumped the same day to the newer upstream `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`, upstream `main` as of `2026-03-19`), and the same Fedora 43/44/rawhide x86_64 chain remains green. `aylurs-gtk-shell` keeps a small downstream patch set for packaged `gnim`, safer GIR defaults, Fedora `npx`, and `gtk4-layer-shell` soname handling.
+- `templates/package/Makefile` now stages package-local patches into the package `SOURCEDIR` root for local SRPM generation and honors optional `GO_VENDOR_SUBDIR` through `scripts/prepare-go-vendor.sh`, so future packages can generate vendored Go `Source1` archives locally without package-specific shell glue.
 - Multi-arch rollout rule learned on `2026-03-11`: when expanding packages to
   new chroots, publish COPR-packaged dependencies first and wait for repo
   metadata to catch up before triggering dependent packages. This applies even
@@ -145,6 +147,7 @@ Important:
   - re-validate/tune newly added dependency floors and any Fedora version-specific conditionals as packages evolve
   - final packaging polish/review for bundled components (currently `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` carry bundled `sdbus-cpp` declarations)
   - revisit bundling declarations if upstream release contents or build paths change
+  - package `@ts-for-gir/cli` (or split an AGS type-generation helper) so `ags init` / `ags types` stop fetching it through `npx` at runtime
 
 ## COPR strategy (agreed)
 
@@ -184,6 +187,22 @@ Start with foundational libraries before `hyprland`:
 9. `glaze` (pin to compatible `7.x` for Hyprland `0.54.x`)
 10. `hyprland`
 11. `xdg-desktop-portal-hyprland`
+
+## Suggested build/update order for AGS / Astal stack
+
+1. `gnim`
+2. `astal-io`
+3. `astal3`
+4. `astal4`
+5. `astal-hyprland`
+6. `aylurs-gtk-shell`
+
+Notes:
+
+- Keep `astal-io`, `astal3`, `astal4`, and `astal-hyprland` on the same pinned
+  `Aylur/astal` snapshot commit.
+- `@ts-for-gir/cli` remains the main follow-up for a fully offline AGS
+  bootstrap/type-generation workflow.
 
 Additional runtime/support package now included in COPR:
 
@@ -258,6 +277,12 @@ Note:
 | `swappy`                      | snapshot editor (Wayland)          |       36 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `1.8.0` from `jtheoof/swappy`; based on Fedora's existing `swappy` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64; updates Fedora's official `1.5.1` baseline while keeping the spec close to a future Fedora dist-git bump; onboarded to COPR with successful first manual build `10204851` across Fedora 43/44/rawhide on both x86_64 and aarch64 |
 | `cliphist`                    | clipboard history manager          |       37 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.7.0` from `sentriz/cliphist`; based closely on Fedora's existing `cliphist` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64; Go-based Wayland clipboard history manager with runtime `Requires: wl-clipboard` / `xdg-utils`; uses vendored Go `Source1` tarball for offline mock/COPR builds; onboarded to COPR with successful first manual build `10204957` across Fedora 43/44/rawhide on both x86_64 and aarch64 |
 | `departure`                   | logout app (Wayland)               |       38 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.1.0` from `mpalatsi/departure`; GTK4/gtk4-layer-shell Rust logout app; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; uses vendored Rust `Source1` tarball for offline mock/COPR builds; onboarded to COPR with successful first manual build `10235517` across Fedora 43/44/rawhide on both x86_64 and aarch64 |
+| `gnim`                        | AGS JS runtime library             |       39 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | upstream release `1.9.0` from `Aylur/gnim`, packaged from the published npm tarball and installed under `/usr/share/ags/js/node_modules/gnim`; local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass with the imported Astal/AGS stack                                                                                                                          |
+| `astal-io`                    | AGS / Astal core library           |       40 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | pinned `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`); local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass; ships `AstalIO-0.1.gir` with the typelib for AGS type generation                                                                                                                                                                                             |
+| `astal3`                      | Astal GTK3 widget library          |       41 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | pinned `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`); local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass; build/runtime stack depends on `astal-io`                                                                                                                                                                                                                      |
+| `astal4`                      | Astal GTK4 widget library          |       42 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | pinned `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`); local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass; build/runtime stack depends on `astal-io`                                                                                                                                                                                                                      |
+| `astal-hyprland`              | Astal Hyprland IPC binding         |       43 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | pinned `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`); optional Hyprland-aware binding for AGS widgets; local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass                                                                                                                                                                                                               |
+| `aylurs-gtk-shell`            | AGS scaffolding CLI                |       44 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | upstream release `v3.1.1`; local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass; RPM name avoids Fedora's unrelated `ags`, requires packaged `gnim` / `astal3` / `astal4` plus `/usr/bin/sass`, and carries a small downstream patch set for packaged `gnim`, GIR defaults, Fedora `npx`, and `gtk4-layer-shell` soname handling                                                              |
 
 Recommended usage:
 
@@ -292,6 +317,8 @@ Use a staged validation approach instead of a single "smoke test":
 7. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
 8. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
 9. Onboard `hyprls` and `tree-sitter-hyprlang` to COPR (`mineiro/hyprland`) and re-run `repoclosure` after publish.
+10. Create COPR SCM package entries in `mineiro/hyprland` for `gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`, and `aylurs-gtk-shell`, building in dependency order and waiting for repo metadata before triggering `aylurs-gtk-shell`.
+11. Package `@ts-for-gir/cli` (or split an AGS type-generation helper package) so `ags init` / `ags types` no longer depend on runtime `npx` network fetches.
 
 ## Working conventions for future edits
 
