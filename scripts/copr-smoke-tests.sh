@@ -62,7 +62,7 @@ assert_copr_repo_packages_available() {
     found_in_repo=0
     if query_output="$(
       dnf_cmd -q --repo="${repo_id}" \
-        repoquery --available --queryformat $'%{name}\t%{repoid}' \
+        repoquery --available --queryformat $'%{name}\t%{repoid}\n' \
         "${pkg}" 2>/dev/null
     )"; then
       while IFS=$'\t' read -r pkg_name pkg_repo; do
@@ -98,7 +98,7 @@ assert_installed_from_copr_repo() {
 
   if ! query_output="$(
     dnf_cmd -q repoquery --installed \
-      --queryformat $'%{name}\t%{from_repo}' \
+      --queryformat $'%{name}\t%{from_repo}\n' \
       "${packages[@]}" 2>&1
   )"; then
     :
