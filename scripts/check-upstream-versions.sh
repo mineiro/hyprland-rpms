@@ -14,7 +14,8 @@ Options:
 Status values:
   same                 local version equals upstream version
   different            local version differs from upstream version
-  snapshot             local version is a VCS snapshot of upstream base version
+  snapshot             local version is a VCS snapshot or pinned commit ahead of the latest stable tag
+  manual               upstream version check is intentionally skipped for this package
   unknown              upstream version could not be determined
 EOF
 }
@@ -70,6 +71,8 @@ fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+declare -A git_versions_cache
+
 if [[ -n "${package_filter}" ]]; then
   env_files=("${repo_root}/packages/${package_filter}/package.env")
 else
@@ -86,48 +89,82 @@ if [[ -n "${package_filter}" && ! -f "${env_files[0]}" ]]; then
   exit 1
 fi
 
-fetch_github_latest_tag() {
-  local owner="$1"
-  local repo="$2"
-  local json tag
+curl_ok() {
+  local url="$1"
 
-  json="$(curl -fsSL "https://api.github.com/repos/${owner}/${repo}/releases/latest" 2>/dev/null || true)"
-  tag="$(jq -r '.tag_name // empty' <<<"${json}" 2>/dev/null || true)"
-  if [[ -n "${tag}" ]]; then
-    printf '%s\n' "${tag}"
+  if curl -fsSLI --connect-timeout 5 --max-time 15 "${url}" >/dev/null 2>&1; then
     return 0
   fi
 
-  json="$(curl -fsSL "https://api.github.com/repos/${owner}/${repo}/tags?per_page=1" 2>/dev/null || true)"
-  tag="$(jq -r '.[0].name // empty' <<<"${json}" 2>/dev/null || true)"
-  printf '%s\n' "${tag}"
+  curl -fsSL --connect-timeout 5 --max-time 15 --range 0-0 "${url}" -o /dev/null >/dev/null 2>&1
 }
 
-fetch_codeberg_latest_tag() {
-  local owner="$1"
-  local repo="$2"
-  local json tag
+check_source_url() {
+  local source_url="$1"
 
-  json="$(curl -fsSL "https://codeberg.org/api/v1/repos/${owner}/${repo}/releases?limit=1" 2>/dev/null || true)"
-  tag="$(jq -r '.[0].tag_name // empty' <<<"${json}" 2>/dev/null || true)"
-  if [[ -n "${tag}" ]]; then
-    printf '%s\n' "${tag}"
+  if [[ -z "${source_url}" || ! "${source_url}" =~ ^https?:// ]]; then
+    printf '%s\n' "n/a"
     return 0
   fi
 
-  json="$(curl -fsSL "https://codeberg.org/api/v1/repos/${owner}/${repo}/tags?page=1&limit=1" 2>/dev/null || true)"
-  tag="$(jq -r '.[0].name // empty' <<<"${json}" 2>/dev/null || true)"
-  printf '%s\n' "${tag}"
+  if curl_ok "${source_url}"; then
+    printf '%s\n' "ok"
+    return 0
+  fi
+
+  printf '%s\n' "missing"
+}
+
+fetch_git_versions() {
+  local upstream_git="$1"
+  local cached versions
+
+  cached="${git_versions_cache["${upstream_git}"]+set}"
+  if [[ "${cached}" == "set" ]]; then
+    printf '%s\n' "${git_versions_cache["${upstream_git}"]}"
+    return 0
+  fi
+
+  versions="$(
+    git ls-remote --tags --refs "${upstream_git}" 2>/dev/null \
+      | awk -F/ '{print $NF}' \
+      | grep -E '^[vV]?[0-9]+(\.[0-9]+){1,3}([._-][0-9A-Za-z.-]+)?$' \
+      | sed -E 's/^[vV]//' \
+      | sort -uV
+  )"
+
+  git_versions_cache["${upstream_git}"]="${versions}"
+  printf '%s\n' "${versions}"
+}
+
+is_prerelease_version() {
+  local version="$1"
+
+  [[ "${version}" =~ (^|[._-])(alpha|beta|pre|preview|rc)([._-]?[0-9A-Za-z.-]*)?$ ]]
 }
 
 fetch_latest_tag_from_git() {
   local upstream_git="$1"
+  local versions stable latest
 
-  git ls-remote --tags --refs "${upstream_git}" 2>/dev/null \
-    | awk -F/ '{print $NF}' \
-    | grep -E '^[vV]?[0-9]+(\.[0-9]+){1,3}([._-][0-9A-Za-z.-]+)?$' \
-    | sort -V \
-    | tail -n1
+  versions="$(fetch_git_versions "${upstream_git}")"
+  if [[ -z "${versions}" ]]; then
+    return 0
+  fi
+
+  stable="$(printf '%s\n' "${versions}" | while IFS= read -r version; do
+    [[ -z "${version}" ]] && continue
+    if ! is_prerelease_version "${version}"; then
+      printf '%s\n' "${version}"
+    fi
+  done | tail -n1)"
+  if [[ -n "${stable}" ]]; then
+    printf '%s\n' "${stable}"
+    return 0
+  fi
+
+  latest="$(printf '%s\n' "${versions}" | tail -n1)"
+  printf '%s\n' "${latest}"
 }
 
 fetch_pypi_latest_version() {
@@ -219,25 +256,64 @@ fetch_source_latest_version() {
   printf '%s\n' ""
 }
 
-check_source_url() {
+is_commit_archive_source() {
   local source_url="$1"
 
-  if [[ -z "${source_url}" || ! "${source_url}" =~ ^https?:// ]]; then
-    printf '%s\n' "n/a"
+  [[ "${source_url}" =~ /archive/[0-9a-f]{7,40}([./-]|$) ]]
+}
+
+version_gt() {
+  local left="$1"
+  local right="$2"
+  local highest
+
+  highest="$(printf '%s\n%s\n' "${left}" "${right}" | sort -V | tail -n1)"
+  [[ "${left}" != "${right}" && "${highest}" == "${left}" ]]
+}
+
+fetch_latest_matching_source_version() {
+  local upstream_git="$1"
+  local source_url="$2"
+  local local_version="$3"
+  local versions candidate candidate_url
+  local -a stable_candidates=()
+  local -a prerelease_candidates=()
+
+  if [[ -z "${upstream_git}" || "${source_url}" != *"${local_version}"* ]]; then
     return 0
   fi
 
-  if curl -fsSLI "${source_url}" >/dev/null 2>&1; then
-    printf '%s\n' "ok"
+  versions="$(fetch_git_versions "${upstream_git}")"
+  if [[ -z "${versions}" ]]; then
     return 0
   fi
 
-  if curl -fsSL --range 0-0 "${source_url}" -o /dev/null >/dev/null 2>&1; then
-    printf '%s\n' "ok"
-    return 0
-  fi
+  while IFS= read -r candidate; do
+    [[ -z "${candidate}" ]] && continue
+    if is_prerelease_version "${candidate}"; then
+      prerelease_candidates+=("${candidate}")
+    else
+      stable_candidates+=("${candidate}")
+    fi
+  done <<<"${versions}"
 
-  printf '%s\n' "missing"
+  for ((idx=${#stable_candidates[@]} - 1; idx >= 0; idx--)); do
+    candidate="${stable_candidates[idx]}"
+    candidate_url="${source_url//${local_version}/${candidate}}"
+    if curl_ok "${candidate_url}"; then
+      printf '%s\n' "${candidate}"
+      return 0
+    fi
+  done
+
+  for ((idx=${#prerelease_candidates[@]} - 1; idx >= 0; idx--)); do
+    candidate="${prerelease_candidates[idx]}"
+    candidate_url="${source_url//${local_version}/${candidate}}"
+    if curl_ok "${candidate_url}"; then
+      printf '%s\n' "${candidate}"
+      return 0
+    fi
+  done
 }
 
 printf '%-28s %-24s %-18s %-10s %-16s %s\n' "PACKAGE" "LOCAL" "UPSTREAM" "STATUS" "SOURCE" "UPSTREAM_GIT"
@@ -248,6 +324,7 @@ for envf in "${env_files[@]}"; do
 
   spec_file="$(awk -F= '/^SPEC_FILE=/{print $2}' "${envf}")"
   upstream_git="$(awk -F= '/^UPSTREAM_GIT=/{print $2}' "${envf}")"
+  upstream_releases="$(awk -F= '/^UPSTREAM_RELEASES=/{print $2}' "${envf}")"
 
   if [[ -z "${spec_file}" || -z "${upstream_git}" ]]; then
     local_version="(invalid package.env)"
@@ -275,37 +352,40 @@ for envf in "${env_files[@]}"; do
   source_kind="$(detect_source_kind "${source_url}")"
   source_check="$(check_source_url "${source_url}")"
   source_version="$(fetch_source_latest_version "${source_url}")"
-  upstream_tag=""
+  upstream_version=""
+  manual_check=0
 
-  if [[ "${upstream_git}" =~ ^https://github.com/([^/]+)/([^/.]+)(\.git)?$ ]]; then
-    upstream_tag="$(fetch_github_latest_tag "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}")"
-  elif [[ "${upstream_git}" =~ ^https://codeberg.org/([^/]+)/([^/.]+)(\.git)?$ ]]; then
-    upstream_tag="$(fetch_codeberg_latest_tag "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}")"
-  fi
-
-  if [[ -z "${upstream_tag}" ]]; then
-    upstream_tag="$(fetch_latest_tag_from_git "${upstream_git}" || true)"
-  fi
-
-  upstream_version="${upstream_tag#v}"
   if [[ -n "${source_version}" ]]; then
     upstream_version="${source_version}"
+  elif [[ -z "${upstream_releases}" ]] && is_commit_archive_source "${source_url}"; then
+    manual_check=1
+  else
+    upstream_version="$(fetch_latest_matching_source_version "${upstream_git}" "${source_url}" "${local_version}")"
+    if [[ -z "${upstream_version}" ]]; then
+      upstream_version="$(fetch_latest_tag_from_git "${upstream_git}" || true)"
+    fi
   fi
+
   local_base="${local_version%%^git*}"
   source_label="${source_check}:${source_kind}"
 
-  if [[ -z "${upstream_version}" ]]; then
+  if [[ ${manual_check} -eq 1 ]]; then
+    upstream_version="(manual)"
+    status="manual"
+  elif [[ -z "${upstream_version}" ]]; then
     upstream_version="(unknown)"
     status="unknown"
   elif [[ "${local_version}" == "${upstream_version}" ]]; then
     status="same"
   elif [[ "${local_base}" == "${upstream_version}" ]]; then
     status="snapshot"
+  elif is_commit_archive_source "${source_url}" && version_gt "${local_version}" "${upstream_version}"; then
+    status="snapshot"
   else
     status="different"
   fi
 
-  if [[ ${changed_only} -eq 1 && "${status}" == "same" && "${source_check}" == "ok" ]]; then
+  if [[ ${changed_only} -eq 1 && ( "${status}" == "same" || "${status}" == "manual" ) && "${source_check}" == "ok" ]]; then
     continue
   fi
 
