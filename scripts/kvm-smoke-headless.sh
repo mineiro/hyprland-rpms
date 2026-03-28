@@ -1520,6 +1520,7 @@ dnf -y --refresh install --setopt=install_weak_deps=0 --nodocs \
   hyprsysteminfo \
   hyprlauncher \
   hyprshot \
+  satty \
   hyprpwcenter \
   hyprdim \
   hyprshutdown \
@@ -1551,6 +1552,7 @@ rpm -q \
   hyprsysteminfo \
   hyprlauncher \
   hyprshot \
+  satty \
   hyprpwcenter \
   hyprdim \
   hyprshutdown \
@@ -1570,6 +1572,7 @@ for bin in \
   hyprsysteminfo \
   hyprlauncher \
   hyprshot \
+  satty \
   hyprpwcenter \
   hyprdim \
   hyprshutdown \

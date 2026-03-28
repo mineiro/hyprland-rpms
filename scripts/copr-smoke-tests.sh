@@ -193,6 +193,7 @@ run_inside_container() {
     hyprsysteminfo
     hyprlauncher
     hyprshot
+    satty
     hyprpwcenter
     hyprdim
     hyprshutdown
@@ -227,6 +228,7 @@ run_inside_container() {
     hyprsysteminfo
     hyprlauncher
     hyprshot
+    satty
     hyprpwcenter
     hyprdim
     hyprshutdown
@@ -265,6 +267,7 @@ run_inside_container() {
   hyprland-share-picker --help >/dev/null || true
   uwsm --help >/dev/null
   uuctl --help >/dev/null
+  satty --version >/dev/null
   if command -v systemctl >/dev/null 2>&1; then
     fumon --help >/dev/null
   else
