@@ -1,12 +1,12 @@
-%global upstream_commit d0f7714eba4f8d263b99117c0921e7c810ef69a2
+%global upstream_commit 458eb7045f714f51372d2890226945d5bd3b007f
 %global upstream_shortcommit %(c=%{upstream_commit}; echo ${c:0:7})
 
 Name:           wl-vapi-gen
-Version:        1.0.0
+Version:        1.1.0
 Release:        %autorelease
 Summary:        Wayland protocol to Vala VAPI generator
 
-License:        GPL-3.0-only
+License:        MIT
 URL:            https://github.com/kotontrion/wl-vapi-gen
 Source0:        %{url}/archive/%{upstream_commit}/%{name}-%{upstream_shortcommit}.tar.gz
 

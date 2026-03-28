@@ -5,7 +5,7 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.54.2
+Version:        0.54.3
 Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 
@@ -17,7 +17,7 @@ Source0:        %{url}/releases/download/v%{version}/source-v%{version}.tar.gz
 BuildRequires:  cmake
 # Encode the validated Hypr stack floors so COPR/builddep does not mix older
 # Fedora packages with newer COPR packages (for example hyprutils ABI drift).
-BuildRequires:  cmake(glaze) >= 7.0.0
+BuildRequires:  cmake(glaze) >= 7.2.2
 BuildRequires:  gcc-c++
 BuildRequires:  meson
 BuildRequires:  ninja-build
@@ -29,9 +29,9 @@ BuildRequires:  pkgconfig(gio-2.0)
 BuildRequires:  pkgconfig(glesv2)
 BuildRequires:  pkgconfig(hwdata)
 BuildRequires:  pkgconfig(hyprcursor) >= 0.1.13
-BuildRequires:  pkgconfig(hyprgraphics) >= 0.4.0
+BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.0
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.11.1
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(libdisplay-info)

@@ -5,6 +5,6 @@ protocol bindings.
 
 Current packaging target:
 
-- upstream tag `1.0.0`
+- upstream tag `1.1.0`
 - installs the `wl-vapi-gen` executable and pkg-config metadata
 - used as a build dependency for `astal-wl` and `astal-river`
