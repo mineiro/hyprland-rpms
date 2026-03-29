@@ -2,3 +2,7 @@
 # than fetched from a remote URL, so rpmlint's URL-only Source1 check is a
 # false positive for this repo's offline build workflow.
 addFilter(r"invalid-url Source1: .*?-vendor\.tar\.(gz|xz)$")
+
+# material-symbols-fonts repacks a minimal local Source0 from upstream raw
+# files so the SRPM only carries the installable font assets and docs.
+addFilter(r"invalid-url Source0: material-symbols-fonts-[0-9]{8}\.tar\.xz$")

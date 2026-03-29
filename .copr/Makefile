@@ -17,7 +17,12 @@ prepare:
 srpm: prepare
 	@test -n "$(spec)" || { echo "COPR did not pass 'spec'"; exit 1; }
 	@test -n "$(outdir)" || { echo "COPR did not pass 'outdir'"; exit 1; }
-	spectool -g -R "./$(specfile)"
+	@if [ -x ./prepare-sources.sh ]; then \
+		./prepare-sources.sh "./$(specfile)" "$(CURDIR)"; \
+	fi
+	@if rpmspec -P "./$(specfile)" | awk '/^Source[0-9]*:[[:space:]]*/ { print $$2 }' | grep -Eq '^(https?|ftp)://'; then \
+		spectool -g -R "./$(specfile)"; \
+	fi
 	@if ls ./patches/*.patch >/dev/null 2>&1; then \
 		cp -f ./patches/*.patch ./; \
 	fi
