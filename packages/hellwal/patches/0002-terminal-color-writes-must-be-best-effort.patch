@@ -1,0 +1,78 @@
+--- a/hellwal.c
++++ b/hellwal.c
+@@ -104,6 +104,7 @@
+ #include <math.h>
+ #include <time.h>
+ #include <glob.h>
++#include <errno.h>
+ #include <fcntl.h>
+ #include <stdio.h>
+ #include <libgen.h>
+@@ -421,6 +422,7 @@ void median_cut(RGB *colors, size_t *starts, size_t *ends, size_t *num_boxes, si
+ 
+ /* term, set for all active terminals ANSI escape codes */
+ void set_term_colors(PALETTE pal);
++int write_term_sequences(int fd, const char *buffer, size_t len);
+ 
+ /* palettes */
+ PALETTE gen_palette(IMG *img);
+@@ -1646,6 +1648,32 @@ void img_free(IMG *img)
+  *
+  *   \033]{index};{color}\007
+  */
++int write_term_sequences(int fd, const char *buffer, size_t len)
++{
++    size_t total = 0;
++
++    while (total < len)
++    {
++        ssize_t written = write(fd, buffer + total, len - total);
++        if (written > 0)
++        {
++            total += (size_t)written;
++            continue;
++        }
++
++        if (written < 0 && errno == EINTR)
++            continue;
++
++        if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK ||
++                            errno == EIO || errno == ENXIO))
++            return 0;
++
++        return 0;
++    }
++
++    return 1;
++}
++
+ void set_term_colors(PALETTE pal)
+ {
+     size_t succ = 0;
+@@ -1684,12 +1712,11 @@ void set_term_colors(PALETTE pal)
+         {
+             for (size_t i = 0; i < globbuf.gl_pathc; i++)
+             {
+-                FILE *f = fopen(globbuf.gl_pathv[i], "w");
+-                if (f)
++                int fd = open(globbuf.gl_pathv[i], O_WRONLY | O_NONBLOCK | O_CLOEXEC | O_NOCTTY);
++                if (fd >= 0)
+                 {
+-                    fwrite(buffer, 1, offset, f);
+-                    fclose(f);
+-                    succ++;
++                    succ += (size_t)write_term_sequences(fd, buffer, offset);
++                    close(fd);
+                 }
+             }
+             globfree(&globbuf);
+@@ -1701,8 +1728,7 @@ void set_term_colors(PALETTE pal)
+          */
+         if (isatty(STDOUT_FILENO))
+         {
+-            fwrite(buffer, 1, offset, stdout);
+-            succ++;
++            succ += (size_t)write_term_sequences(STDOUT_FILENO, buffer, offset);
+         }
+ 
+     }

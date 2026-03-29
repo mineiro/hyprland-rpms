@@ -1,6 +1,6 @@
 Name:           hellwal
 Version:        1.0.7
-Release:        %autorelease
+Release:        2%{?dist}
 Summary:        Wallpaper-driven color palette generator with templated output
 
 # Upstream is MIT; bundled stb_image.h is dual MIT/Public Domain and packaged
@@ -11,6 +11,8 @@ Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz#/%{name}-%{version}.
 # Use packaged templates/themes when the default per-user directories are empty
 # so the Fedora build works out of the box without manual copying.
 Patch0:         patches/0001-use-packaged-system-data-dirs-as-default-fallbacks.patch
+# Terminal recoloring should never block palette generation on a bad PTY.
+Patch1:         patches/0002-terminal-color-writes-must-be-best-effort.patch
 
 BuildRequires:  gcc
 BuildRequires:  make
