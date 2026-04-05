@@ -12,7 +12,7 @@
 
 Name:           hypridle
 Version:        0.1.7
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Hyprland's idle daemon
 
 License:        BSD-3-Clause

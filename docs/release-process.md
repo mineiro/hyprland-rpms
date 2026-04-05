@@ -41,6 +41,20 @@
   to fail in COPR until `python-materialyoucolor` finished publishing on the
   aarch64 chroots.
 
+## Same-version ABI rebuild rule
+
+- If a dependency ABI changes and downstream packages are rebuilt without an
+  upstream version bump, the rebuilt consumers must get a higher RPM release.
+- Do not rely on a plain COPR rebuild of the same `Version-Release`; DNF will
+  keep the already-installed headers and can continue treating them as the old
+  ABI consumers.
+- For this repo's specs, bump the release base explicitly (for example
+  `Release: %autorelease -b 2`) on every same-version consumer rebuild, then
+  reset it on the next upstream version bump.
+- Recent example: the `hyprutils 0.12.0` soname move (`libhyprutils.so.10` ->
+  `.11`) required `-2` rebuilds of the unchanged-version Hypr stack so users
+  could upgrade cleanly.
+
 ## Hyprland plugins compatibility gate
 
 - `hyprland-plugins` must follow upstream ABI-compatible release families.

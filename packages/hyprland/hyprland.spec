@@ -6,7 +6,7 @@
 
 Name:           hyprland
 Version:        0.54.3
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Dynamic tiling Wayland compositor
 
 # TODO: Re-verify all bundled component licenses for the target version.

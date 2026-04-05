@@ -1,6 +1,6 @@
 Name:           hyprsunset
 Version:        0.3.3
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Blue-light filter application for Hyprland
 
 License:        BSD-3-Clause

@@ -1,6 +1,6 @@
 Name:           hyprsysteminfo
 Version:        0.1.3
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Application to display information about the running system
 
 License:        BSD-3-Clause

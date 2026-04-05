@@ -1,6 +1,6 @@
 Name:           hyprpolkitagent
 Version:        0.1.3
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Simple polkit authentication agent for Hyprland
 
 License:        BSD-3-Clause

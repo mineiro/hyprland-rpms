@@ -1,6 +1,6 @@
 Name:           hyprgraphics
 Version:        0.5.0
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Graphics and resource utility library for the Hyprland ecosystem
 
 License:        BSD-3-Clause
