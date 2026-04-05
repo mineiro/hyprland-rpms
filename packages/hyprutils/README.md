@@ -1,5 +1,8 @@
 # hyprutils
 
-Starter packaging directory for `hyprutils`.
+Fedora RPM packaging for `hyprutils`.
 
-Update `hyprutils.spec` and `package.env` before first build.
+Current packaging target:
+
+- upstream release `0.12.0` from `hyprwm/hyprutils`
+- shared utility library used across the Hyprland ecosystem

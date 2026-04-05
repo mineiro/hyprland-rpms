@@ -325,6 +325,7 @@ for envf in "${env_files[@]}"; do
   spec_file="$(awk -F= '/^SPEC_FILE=/{print $2}' "${envf}")"
   upstream_git="$(awk -F= '/^UPSTREAM_GIT=/{print $2}' "${envf}")"
   upstream_releases="$(awk -F= '/^UPSTREAM_RELEASES=/{print $2}' "${envf}")"
+  upstream_check="$(awk -F= '/^UPSTREAM_CHECK=/{print $2}' "${envf}")"
 
   if [[ -z "${spec_file}" || -z "${upstream_git}" ]]; then
     local_version="(invalid package.env)"
@@ -355,7 +356,9 @@ for envf in "${env_files[@]}"; do
   upstream_version=""
   manual_check=0
 
-  if [[ -n "${source_version}" ]]; then
+  if [[ "${upstream_check}" == "manual" ]]; then
+    manual_check=1
+  elif [[ -n "${source_version}" ]]; then
     upstream_version="${source_version}"
   elif [[ -z "${upstream_releases}" ]] && is_commit_archive_source "${source_url}"; then
     manual_check=1
@@ -385,7 +388,11 @@ for envf in "${env_files[@]}"; do
     status="different"
   fi
 
-  if [[ ${changed_only} -eq 1 && ( "${status}" == "same" || "${status}" == "manual" ) && "${source_check}" == "ok" ]]; then
+  if [[ ${changed_only} -eq 1 && "${status}" == "manual" ]]; then
+    continue
+  fi
+
+  if [[ ${changed_only} -eq 1 && "${status}" == "same" && "${source_check}" == "ok" ]]; then
     continue
   fi
 
