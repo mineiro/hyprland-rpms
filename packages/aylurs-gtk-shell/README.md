@@ -10,8 +10,7 @@ Naming note:
 
 Current packaging target:
 
-- upstream release `v3.1.1`
-- the `v3.1.1` tarball still reports `3.1.0` in `package.json`
+- upstream release `v3.1.2`
 - `meson.build` installs `node_modules/gnim`, but the release tarball does not contain that path
 - `LICENSE` is GPLv3 while `package.json` says `LGPL-2.1`
 - local validation passes via SRPM generation plus Fedora 43/44/rawhide

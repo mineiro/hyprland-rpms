@@ -2,7 +2,7 @@
 %global gnimdir %{ags_jsdir}/node_modules/%{name}
 
 Name:           gnim
-Version:        1.9.0
+Version:        1.9.1
 Release:        %autorelease
 Summary:        JSX and reactivity library for GNOME JavaScript
 

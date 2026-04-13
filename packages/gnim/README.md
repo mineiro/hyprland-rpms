@@ -4,7 +4,7 @@ Fedora RPM packaging for `gnim`.
 
 Current packaging target:
 
-- upstream release `1.9.0` from `Aylur/gnim`
+- upstream release `1.9.1` from `Aylur/gnim`
 - source payload comes from the published npm tarball for the same version
 - installs under `%{_datadir}/ags/js/node_modules/gnim` because AGS `3.1.x`
   still expects the npm-style runtime tree

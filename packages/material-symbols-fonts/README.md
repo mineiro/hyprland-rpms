@@ -4,7 +4,7 @@ Fedora RPM packaging for `material-symbols-fonts`.
 
 Current packaging target:
 
-- upstream snapshot `20260327` from `google/material-design-icons` `master`
+- upstream snapshot `20260410` from `google/material-design-icons` `master`
 - Google Material Symbols variable TTF fonts (`Outlined`, `Rounded`, `Sharp`)
 
 Notes:

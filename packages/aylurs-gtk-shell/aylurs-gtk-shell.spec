@@ -1,7 +1,7 @@
 %global upstream_name ags
 
 Name:           aylurs-gtk-shell
-Version:        3.1.1
+Version:        3.1.2
 Release:        %autorelease
 Summary:        Scaffolding CLI for Astal and Gnim projects
 
@@ -18,9 +18,7 @@ Patch2:         patches/0003-types-prefer-fedora-npx.patch
 Patch3:         patches/0004-types-limit-default-modules.patch
 Patch4:         patches/0005-use-layer-shell-soname-for-preload.patch
 
-# Upstream issues to resolve before the first successful build:
-# - Source0 v3.1.1 still reports version 3.1.0 in package.json
-# - upstream meson.build assumes vendored gnim; Fedora carries Patch0
+# Upstream meson.build still assumes vendored gnim; Fedora carries Patch0.
 
 BuildRequires:  gcc
 BuildRequires:  gjs
@@ -34,7 +32,7 @@ Requires:       /usr/bin/sass
 Requires:       gjs
 Requires:       astal3
 Requires:       astal4
-Requires:       gnim >= 1.9.0
+Requires:       gnim >= 1.9.1
 Requires:       nodejs-npm
 Conflicts:      ags
 
