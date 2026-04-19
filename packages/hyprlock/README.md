@@ -1,8 +1,9 @@
 # hyprlock
 
-Starter packaging directory for `hyprlock` in this monorepo.
+Fedora RPM packaging for `hyprlock`.
 
-Current status:
-- starter spec added (adapted from the `solopasha/hyprlandRPM` baseline)
-- version and dependency floors should be re-verified in local `mock` before COPR onboarding
+Current packaging target:
+
+- upstream release `0.9.5` from `hyprwm/hyprlock`
+- builds Hyprland's GPU-accelerated screen locker
 - current spec uses a documented bundled `sdbus-cpp` source path (temporary policy)
