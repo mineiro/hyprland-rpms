@@ -6,7 +6,6 @@ Summary:        Multipurpose launcher and picker for Hyprland
 License:        BSD-3-Clause
 URL:            https://github.com/hyprwm/hyprlauncher
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
-Patch0:         patches/0001-add-missing-posix-includes-for-newer-toolchains.patch
 
 ExcludeArch:    %{ix86}
 
