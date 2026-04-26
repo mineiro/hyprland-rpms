@@ -19,6 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Install tooling
@@ -29,3 +30,18 @@ jobs:
       - name: Parse and lint specs
         run: |
           ./scripts/check-specs.sh
+
+      - name: Check ABI rebuild coverage
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            git fetch --no-tags origin "${BASE_REF}"
+            ./scripts/check-abi-rebuilds.sh --base-ref "origin/${BASE_REF}"
+          elif [ -n "${BEFORE_SHA}" ] && [ "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]; then
+            ./scripts/check-abi-rebuilds.sh --base-ref "${BEFORE_SHA}"
+          else
+            ./scripts/check-abi-rebuilds.sh --base-ref HEAD~1
+          fi

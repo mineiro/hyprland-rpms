@@ -6,6 +6,8 @@
    - `./scripts/check-upstream-versions.sh --changed-only`
    - `./scripts/check-upstream-versions.sh --package <name>`
 2. Update the package spec (`Version`, `Source`, dependency floors, patches)
+   - For shared-library packages, check the required consumer rebuild set:
+     `ABI_REBUILD_BASE=<base-ref> make check-abi-rebuilds`
 3. Build SRPM locally:
    - `make srpm PACKAGE=<name>`
 4. Build in `mock` for Fedora 43/44/rawhide (x86_64 baseline):
@@ -54,6 +56,10 @@
 - Recent example: the `hyprutils 0.12.0` soname move (`libhyprutils.so.10` ->
   `.11`) required `-2` rebuilds of the unchanged-version Hypr stack so users
   could upgrade cleanly.
+- The `Spec Lint` workflow runs `scripts/check-abi-rebuilds.sh` to catch common
+  cases before COPR publish: if an in-repo package that ships `*.so.*` changes
+  `Version`, any in-repo `pkgconfig(<package>)` consumers must also change
+  `Version` or `Release` in the same commit/PR.
 
 ## Hyprland plugins compatibility gate
 
