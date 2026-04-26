@@ -6,30 +6,21 @@ Summary:        Application to display information about the running system
 License:        BSD-3-Clause
 URL:            https://github.com/hyprwm/hyprsysteminfo
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
-Patch0:         patches/0001-fix-qt-private-module-detection.patch
 
 ExcludeArch:    %{ix86}
 
 BuildRequires:  cmake
 BuildRequires:  desktop-file-utils
 BuildRequires:  gcc-c++
-BuildRequires:  qt6-rpm-macros
-BuildRequires:  cmake(Qt6Quick)
-BuildRequires:  cmake(Qt6QuickControls2)
-BuildRequires:  cmake(Qt6WaylandClient)
-BuildRequires:  cmake(Qt6Widgets)
-BuildRequires:  qt6-qtbase-private-devel
-BuildRequires:  wayland-devel
+BuildRequires:  cmake(glaze) >= 6.1.0
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.3
 BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
-
-Requires:       /usr/bin/free
-Requires:       /usr/bin/lscpu
-Requires:       /usr/bin/lspci
-Requires:       hyprland-qt-support%{?_isa}
+BuildRequires:  pkgconfig(libdrm)
+BuildRequires:  pkgconfig(libpci)
+BuildRequires:  pkgconfig(pixman-1)
 
 %description
-A small Qt6/QML application to display system information and diagnostics
-without using the terminal.
+%{summary}.
 
 %prep
 %autosetup -p1
