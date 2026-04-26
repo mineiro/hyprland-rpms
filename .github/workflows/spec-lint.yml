@@ -16,16 +16,16 @@ jobs:
     container:
       image: registry.fedoraproject.org/fedora:44
     steps:
+      - name: Install tooling
+        run: |
+          dnf -y install --setopt=install_weak_deps=0 --nodocs \
+            git rpm-build rpmdevtools rpmlint
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Install tooling
-        run: |
-          dnf -y install --setopt=install_weak_deps=0 --nodocs \
-            git rpm-build rpmdevtools rpmlint
 
       - name: Parse and lint specs
         run: |
