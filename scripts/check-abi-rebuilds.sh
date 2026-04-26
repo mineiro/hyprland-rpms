@@ -49,6 +49,8 @@ fi
 
 cd "${repo_root}"
 
+git config --global --add safe.directory "${repo_root}" >/dev/null 2>&1 || true
+
 git rev-parse --verify "${base_ref}^{commit}" >/dev/null
 git rev-parse --verify "${head_ref}^{commit}" >/dev/null
 
