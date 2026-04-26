@@ -5,7 +5,7 @@ Summary:        Qt6 theme provider for Hyprland
 
 License:        BSD-3-Clause
 URL:            https://github.com/hyprwm/hyprqt6engine
-Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
+Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 Patch0:         patches/0001-fix-qt-private-module-detection.patch
 
 ExcludeArch:    %{ix86}

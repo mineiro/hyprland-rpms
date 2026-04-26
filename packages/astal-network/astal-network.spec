@@ -1,6 +1,6 @@
-%global astal_commit 41b50290c6a1cdce7b482897c22fe49286912b9a
+%global astal_commit 6e49ec972f5d85437ce80e8b511d22b35a91b0df
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
-%global snapshot_date 20260319
+%global snapshot_date 20260421
 
 Name:           astal-network
 Version:        0.1.0

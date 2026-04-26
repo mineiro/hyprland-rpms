@@ -1,8 +1,8 @@
 # Build from the actively updated upstream "master" branch. The upstream
 # "main" branch and the old 4.0.0 tag track the deprecated Material Icons set,
 # while Material Symbols is the current Google-maintained icon font family.
-%global commit0        229d4d6de51043272fdbb0137652f18f5ff4034b
-%global snapshot_date  20260410
+%global commit0        481507587f1bdfe712939398c4dc0ecc2079ea7c
+%global snapshot_date  20260424
 
 Version:        0^git%{snapshot_date}
 Release:        %autorelease

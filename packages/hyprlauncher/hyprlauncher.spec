@@ -1,5 +1,5 @@
 Name:           hyprlauncher
-Version:        0.1.5
+Version:        0.1.6
 Release:        %autorelease -b 2
 Summary:        Multipurpose launcher and picker for Hyprland
 

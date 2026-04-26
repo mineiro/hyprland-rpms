@@ -1,5 +1,5 @@
 Name:           hyprsysteminfo
-Version:        0.1.3
+Version:        0.2.0
 Release:        %autorelease -b 2
 Summary:        Application to display information about the running system
 

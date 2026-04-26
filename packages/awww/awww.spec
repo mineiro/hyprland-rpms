@@ -6,7 +6,7 @@
 %global __brp_mangle_shebangs_exclude_from ^/usr/src/debug/.*/vendor/.*\\.rs$
 
 Name:           awww
-Version:        0.12.0
+Version:        0.12.1
 Release:        %autorelease
 Summary:        Efficient animated wallpaper daemon for Wayland, controlled at runtime
 
