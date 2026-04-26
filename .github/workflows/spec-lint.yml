@@ -25,7 +25,7 @@ jobs:
       - name: Install tooling
         run: |
           dnf -y install --setopt=install_weak_deps=0 --nodocs \
-            rpm-build rpmdevtools rpmlint
+            git rpm-build rpmdevtools rpmlint
 
       - name: Parse and lint specs
         run: |
