@@ -6,7 +6,7 @@
 
 Name:           hyprland
 Version:        0.54.3
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Dynamic tiling Wayland compositor
 
 # TODO: Re-verify all bundled component licenses for the target version.
@@ -21,7 +21,7 @@ BuildRequires:  cmake(glaze) >= 7.2.2
 BuildRequires:  gcc-c++
 BuildRequires:  meson
 BuildRequires:  ninja-build
-BuildRequires:  pkgconfig(aquamarine) >= 0.10.0
+BuildRequires:  pkgconfig(aquamarine) >= 0.11.0
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(egl)
 BuildRequires:  pkgconfig(gbm)
