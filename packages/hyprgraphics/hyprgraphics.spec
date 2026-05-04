@@ -1,6 +1,6 @@
 Name:           hyprgraphics
 Version:        0.5.1
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Graphics and resource utility library for the Hyprland ecosystem
 
 License:        BSD-3-Clause
@@ -12,7 +12,7 @@ BuildRequires:  gcc-c++
 BuildRequires:  ninja-build
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(glesv2)
-BuildRequires:  pkgconfig(hyprutils)
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  pkgconfig(libjpeg)
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libmagic)

@@ -1,6 +1,6 @@
 Name:           hyprqt6engine
 Version:        0.1.0
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Qt6 theme provider for Hyprland
 
 License:        BSD-3-Clause
@@ -14,7 +14,7 @@ BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  qt6-rpm-macros
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  cmake(KF6ColorScheme)
 BuildRequires:  cmake(KF6Config)
 BuildRequires:  cmake(KF6IconThemes)

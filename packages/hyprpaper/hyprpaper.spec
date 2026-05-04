@@ -7,8 +7,8 @@
 # the validated Hypr stack to avoid mixed-ABI builddep resolution in COPR.
 
 Name:           hyprpaper
-Version:        0.8.3
-Release:        %autorelease -b 2
+Version:        0.8.4
+Release:        %autorelease
 Summary:        Blazing fast Wayland wallpaper utility with IPC controls
 
 # LICENSE: BSD-3-Clause
@@ -26,8 +26,8 @@ BuildRequires:  systemd-rpm-macros
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(glesv2)
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.3
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(libdrm)

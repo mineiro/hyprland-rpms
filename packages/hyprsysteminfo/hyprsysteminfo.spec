@@ -1,6 +1,6 @@
 Name:           hyprsysteminfo
 Version:        0.2.0
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Application to display information about the running system
 
 License:        BSD-3-Clause
@@ -13,8 +13,8 @@ BuildRequires:  cmake
 BuildRequires:  desktop-file-utils
 BuildRequires:  gcc-c++
 BuildRequires:  cmake(glaze) >= 6.1.0
-BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.3
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libpci)
 BuildRequires:  pkgconfig(pixman-1)

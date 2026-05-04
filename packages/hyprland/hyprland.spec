@@ -6,7 +6,7 @@
 
 Name:           hyprland
 Version:        0.54.3
-Release:        %autorelease -b 3
+Release:        %autorelease -b 4
 Summary:        Dynamic tiling Wayland compositor
 
 # TODO: Re-verify all bundled component licenses for the target version.
@@ -31,7 +31,7 @@ BuildRequires:  pkgconfig(hwdata)
 BuildRequires:  pkgconfig(hyprcursor) >= 0.1.13
 BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.0
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(libdisplay-info)

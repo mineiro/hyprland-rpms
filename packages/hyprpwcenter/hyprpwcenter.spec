@@ -1,6 +1,6 @@
 Name:           hyprpwcenter
 Version:        0.1.2
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        GUI PipeWire control center for Hyprland
 
 License:        BSD-3-Clause
@@ -13,8 +13,8 @@ BuildRequires:  cmake
 BuildRequires:  desktop-file-utils
 BuildRequires:  gcc-c++
 BuildRequires:  ninja-build
-BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.3
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libpipewire-0.3)
 BuildRequires:  pkgconfig(pixman-1)

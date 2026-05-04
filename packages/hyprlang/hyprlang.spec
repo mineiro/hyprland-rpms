@@ -1,6 +1,6 @@
 Name:           hyprlang
 Version:        0.6.8
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Library implementing the Hypr configuration language
 
 License:        LGPL-3.0-only
@@ -10,7 +10,7 @@ Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  ninja-build
-BuildRequires:  pkgconfig(hyprutils) >= 0.7.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 
 %description
 Hyprlang is the configuration language library used across the Hyprland

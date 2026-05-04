@@ -1,6 +1,6 @@
 Name:           hyprshutdown
 Version:        0.1.0
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Graceful shutdown/logout utility for Hyprland
 
 License:        BSD-3-Clause
@@ -13,8 +13,8 @@ BuildRequires:  cmake
 BuildRequires:  cmake(glaze) >= 6.1.0
 BuildRequires:  gcc-c++
 BuildRequires:  ninja-build
-BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.3
-BuildRequires:  pkgconfig(hyprutils) >= 0.11.0
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(pixman-1)
 
