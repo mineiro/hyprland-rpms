@@ -64,11 +64,6 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! command -v rpmspec >/dev/null 2>&1; then
-  echo "rpmspec not found"
-  exit 1
-fi
-
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 declare -A git_versions_cache
@@ -187,14 +182,7 @@ get_source_url() {
   local spec_path="$1"
   local source_url
 
-  source_url="$(
-    rpmspec --define '_tmppath /tmp' -P "${spec_path}" 2>/dev/null \
-      | awk '/^Source([0-9]*)?:[[:space:]]*/ {print $2; exit}'
-  )"
-
-  if [[ -z "${source_url}" ]]; then
-    source_url="$(awk '/^Source([0-9]*)?:[[:space:]]*/ {print $2; exit}' "${spec_path}")"
-  fi
+  source_url="$(get_safe_spec_value "${spec_path}" "Source")"
 
   printf '%s\n' "${source_url%%#*}"
 }
@@ -203,16 +191,127 @@ get_local_version() {
   local spec_path="$1"
   local local_version
 
-  local_version="$(
-    rpmspec --define '_tmppath /tmp' -P "${spec_path}" 2>/dev/null \
-      | awk '/^Version:[[:space:]]*/ {print $2; exit}'
-  )"
-
-  if [[ -z "${local_version}" ]]; then
-    local_version="$(awk '/^Version:[[:space:]]+/{print $2; exit}' "${spec_path}")"
-  fi
+  local_version="$(get_safe_spec_value "${spec_path}" "Version")"
 
   printf '%s\n' "${local_version}"
+}
+
+get_safe_spec_value() {
+  local spec_path="$1"
+  local want="$2"
+
+  awk -v want="${want}" '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+
+    function first_token(value, parts) {
+      value = trim(value)
+      split(value, parts, /[[:space:]]+/)
+      return parts[1]
+    }
+
+    function escape_regex(value,   idx, char, out) {
+      out = ""
+      for (idx = 1; idx <= length(value); idx++) {
+        char = substr(value, idx, 1)
+        if (char ~ /[][\\.^$*+?(){}|]/) {
+          out = out "\\" char
+        } else {
+          out = out char
+        }
+      }
+      return out
+    }
+
+    function escape_replacement(value) {
+      gsub(/\\/, "\\\\", value)
+      gsub(/&/, "\\\\&", value)
+      return value
+    }
+
+    function expand_simple(value,   pass, old, macro_name, pattern, replacement) {
+      for (pass = 0; pass < 20; pass++) {
+        old = value
+        for (macro_name in macros) {
+          pattern = "%\\{" escape_regex(macro_name) "\\}"
+          replacement = escape_replacement(macros[macro_name])
+          gsub(pattern, replacement, value)
+        }
+        if (value == old) {
+          break
+        }
+      }
+      return value
+    }
+
+    function safe_macro_value(value,   expanded, commit) {
+      expanded = expand_simple(trim(value))
+
+      # Common repo pattern for short commit macros. Compute it directly instead
+      # of running the shell macro through rpm preprocessing.
+      if (expanded ~ /^%\(c=[0-9A-Fa-f]{7,40};[[:space:]]*echo[[:space:]]+\$\{c:0:7\}\)$/) {
+        commit = expanded
+        sub(/^%\(c=/, "", commit)
+        sub(/;[[:space:]]*echo[[:space:]]+\$\{c:0:7\}\)$/, "", commit)
+        return substr(commit, 1, 7)
+      }
+
+      return expanded
+    }
+
+    function set_macro(name, value) {
+      if (name !~ /^[_A-Za-z][_A-Za-z0-9]*$/) {
+        return
+      }
+      macros[name] = safe_macro_value(value)
+    }
+
+    function read_directive_value(line) {
+      sub(/^[^:]+:[[:space:]]*/, "", line)
+      return first_token(expand_simple(line))
+    }
+
+    /^[[:space:]]*#/ {
+      next
+    }
+
+    /^[[:space:]]*%(global|define)[[:space:]]+/ {
+      rest = $0
+      sub(/^[[:space:]]*%(global|define)[[:space:]]+/, "", rest)
+      name = first_token(rest)
+      value = rest
+      sub(/^[^[:space:]]+/, "", value)
+      set_macro(name, value)
+      next
+    }
+
+    /^[[:space:]]*(Name|Version|URL)[[:space:]]*:/ {
+      line = $0
+      key = line
+      sub(/^[[:space:]]*/, "", key)
+      sub(/[[:space:]]*:.*$/, "", key)
+      key = tolower(key)
+
+      value = read_directive_value(line)
+      macros[key] = value
+
+      if (want == "Version" && key == "version") {
+        print value
+        exit
+      }
+      next
+    }
+
+    /^[[:space:]]*Source[0-9]*[[:space:]]*:/ {
+      if (want == "Source") {
+        print read_directive_value($0)
+        exit
+      }
+    }
+  ' "${spec_path}"
 }
 
 detect_source_kind() {
