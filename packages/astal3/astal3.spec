@@ -4,7 +4,7 @@
 
 Name:           astal3
 Version:        3.0.0
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Astal GTK3 widget library
 
 License:        LGPL-2.1-only

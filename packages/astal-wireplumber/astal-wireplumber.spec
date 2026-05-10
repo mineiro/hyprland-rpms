@@ -4,7 +4,7 @@
 
 Name:           astal-wireplumber
 Version:        0.1.0
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        WirePlumber library for Astal
 
 License:        LGPL-2.1-only

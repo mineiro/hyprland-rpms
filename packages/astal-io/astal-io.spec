@@ -4,7 +4,7 @@
 
 Name:           astal-io
 Version:        0.1.0
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Astal core library and CLI
 
 License:        LGPL-2.1-only

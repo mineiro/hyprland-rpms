@@ -4,7 +4,7 @@
 
 Name:           astal4
 Version:        4.0.0
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Astal GTK4 widget library
 
 License:        LGPL-2.1-only
