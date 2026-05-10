@@ -1,6 +1,6 @@
-%global astal_commit 6e49ec972f5d85437ce80e8b511d22b35a91b0df
+%global astal_commit 67ddc83e0bdbda6de7f6f15e4fbc5d6b9d2d1b18
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
-%global snapshot_date 20260421
+%global snapshot_date 20260430
 
 Name:           astal-io
 Version:        0.1.0

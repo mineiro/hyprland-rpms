@@ -8,6 +8,6 @@ Current packaging target:
 
 Current repository policy:
 
-- Hyprland is shipped at `0.54.x`.
+- Hyprland is shipped at `0.55.x`.
 - `hyprland-plugins` remains intentionally paused until upstream publishes a
-  `0.54.x`-compatible plugin release.
+  `0.55.x`-compatible plugin release.

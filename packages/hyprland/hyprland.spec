@@ -5,22 +5,25 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.54.3
-Release:        %autorelease -b 4
+Version:        0.55.0
+Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 
 # TODO: Re-verify all bundled component licenses for the target version.
 License:        BSD-3-Clause AND BSD-2-Clause AND HPND-sell-variant AND LGPL-2.1-or-later
 URL:            https://github.com/hyprwm/Hyprland
 Source0:        %{url}/releases/download/v%{version}/source-v%{version}.tar.gz
+Patch0:         patches/0001-cmake-allow-lua-5.4-on-fedora-43-44.patch
 
 BuildRequires:  cmake
 # Encode the validated Hypr stack floors so COPR/builddep does not mix older
 # Fedora packages with newer COPR packages (for example hyprutils ABI drift).
 BuildRequires:  cmake(glaze) >= 7.2.2
 BuildRequires:  gcc-c++
+BuildRequires:  glslang-devel
 BuildRequires:  meson
 BuildRequires:  ninja-build
+BuildRequires:  python3
 BuildRequires:  pkgconfig(aquamarine) >= 0.11.0
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(egl)
@@ -31,15 +34,17 @@ BuildRequires:  pkgconfig(hwdata)
 BuildRequires:  pkgconfig(hyprcursor) >= 0.1.13
 BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.0
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
+BuildRequires:  pkgconfig(lcms2)
 BuildRequires:  pkgconfig(libdisplay-info)
 BuildRequires:  pkgconfig(libdrm)
-BuildRequires:  pkgconfig(libinput)
+BuildRequires:  pkgconfig(libinput) >= 1.28
 BuildRequires:  pkgconfig(libliftoff)
 BuildRequires:  pkgconfig(libseat)
 BuildRequires:  pkgconfig(libudev)
+BuildRequires:  pkgconfig(lua) >= 5.4
 BuildRequires:  pkgconfig(muparser)
 BuildRequires:  pkgconfig(pango)
 BuildRequires:  pkgconfig(pangocairo)
@@ -49,9 +54,9 @@ BuildRequires:  pkgconfig(systemd)
 BuildRequires:  pkgconfig(tomlplusplus)
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(wayland-client)
-BuildRequires:  pkgconfig(wayland-protocols)
+BuildRequires:  pkgconfig(wayland-protocols) >= 1.47
 BuildRequires:  pkgconfig(wayland-scanner)
-BuildRequires:  pkgconfig(wayland-server)
+BuildRequires:  pkgconfig(wayland-server) >= 1.22.91
 BuildRequires:  pkgconfig(xcb)
 BuildRequires:  pkgconfig(xcb-composite)
 BuildRequires:  pkgconfig(xcb-dri3)
@@ -67,7 +72,7 @@ BuildRequires:  pkgconfig(xcb-util)
 BuildRequires:  pkgconfig(xcb-xfixes)
 BuildRequires:  pkgconfig(xcb-xinput)
 BuildRequires:  pkgconfig(xcursor)
-BuildRequires:  pkgconfig(xkbcommon)
+BuildRequires:  pkgconfig(xkbcommon) >= 1.11.0
 BuildRequires:  pkgconfig(xwayland)
 
 Requires:       xorg-x11-server-Xwayland%{?_isa}
@@ -77,19 +82,19 @@ Recommends:     playerctl
 Recommends:     brightnessctl
 Recommends:     mesa-dri-drivers
 Recommends:     polkit
-# Transitional cleanup for the 0.54 upgrade path: remove plugin RPMs that are
+# Transitional cleanup for the 0.55 upgrade path: remove plugin RPMs that are
 # version-locked to Hyprland 0.53.3 and would otherwise deadlock dnf upgrades.
-# Drop these once a 0.54-compatible plugin RPM family is published.
-Obsoletes:      hyprland-plugins < 0.54~
-Obsoletes:      hyprland-plugin-borders-plus-plus < 0.54~
-Obsoletes:      hyprland-plugin-csgo-vulkan-fix < 0.54~
-Obsoletes:      hyprland-plugin-hyprbars < 0.54~
-Obsoletes:      hyprland-plugin-hyprexpo < 0.54~
-Obsoletes:      hyprland-plugin-hyprfocus < 0.54~
-Obsoletes:      hyprland-plugin-hyprscrolling < 0.54~
-Obsoletes:      hyprland-plugin-hyprtrails < 0.54~
-Obsoletes:      hyprland-plugin-hyprwinwrap < 0.54~
-Obsoletes:      hyprland-plugin-xtra-dispatchers < 0.54~
+# Drop these once a 0.55-compatible plugin RPM family is published.
+Obsoletes:      hyprland-plugins < 0.55~
+Obsoletes:      hyprland-plugin-borders-plus-plus < 0.55~
+Obsoletes:      hyprland-plugin-csgo-vulkan-fix < 0.55~
+Obsoletes:      hyprland-plugin-hyprbars < 0.55~
+Obsoletes:      hyprland-plugin-hyprexpo < 0.55~
+Obsoletes:      hyprland-plugin-hyprfocus < 0.55~
+Obsoletes:      hyprland-plugin-hyprscrolling < 0.55~
+Obsoletes:      hyprland-plugin-hyprtrails < 0.55~
+Obsoletes:      hyprland-plugin-hyprwinwrap < 0.55~
+Obsoletes:      hyprland-plugin-xtra-dispatchers < 0.55~
 
 %description
 Hyprland is a dynamic tiling Wayland compositor that focuses on both
@@ -110,7 +115,7 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 Headers and protocol files for %{name}.
 
 %prep
-%autosetup -n hyprland-source -N
+%autosetup -n hyprland-source -p1
 # TODO: Verify source directory name from the release tarball and adjust %%autosetup.
 # TODO: If upstream bundles modified subprojects (for example udis86), document/declare bundling.
 

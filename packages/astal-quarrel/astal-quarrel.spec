@@ -2,10 +2,10 @@
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
 %global snapshot_date 20260430
 
-Name:           astal-bluetooth
+Name:           astal-quarrel
 Version:        0.1.0
 Release:        %autorelease
-Summary:        Bluetooth library for Astal
+Summary:        Quarrel helper library from the Astal project
 
 License:        LGPL-2.1-only
 URL:            https://github.com/Aylur/astal
@@ -26,7 +26,7 @@ Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description
-Bluetooth integration library for Astal-based applications.
+Quarrel is a command-line option helper library from the Astal project.
 
 %description devel
 Development files for %{name}.
@@ -35,13 +35,13 @@ Development files for %{name}.
 %autosetup -n astal-%{astal_commit} -p1
 
 %build
-pushd lib/bluetooth
+pushd lib/quarrel
 %meson
 %meson_build
 popd
 
 %install
-pushd lib/bluetooth
+pushd lib/quarrel
 %meson_install
 popd
 
@@ -50,15 +50,15 @@ popd
 
 %files
 %license LICENSE
-%{_datadir}/gir-1.0/AstalBluetooth-0.1.gir
-%{_libdir}/girepository-1.0/AstalBluetooth-0.1.typelib
-%{_libdir}/libastal-bluetooth.so.0{,.*}
+%{_datadir}/gir-1.0/Quarrel-0.1.gir
+%{_libdir}/girepository-1.0/Quarrel-0.1.typelib
+%{_libdir}/libquarrel.so.0{,.*}
 
 %files devel
-%{_includedir}/astal-bluetooth.h
-%{_libdir}/libastal-bluetooth.so
-%{_libdir}/pkgconfig/astal-bluetooth-0.1.pc
-%{_datadir}/vala/vapi/astal-bluetooth-0.1.vapi
+%{_includedir}/quarrel.h
+%{_libdir}/libquarrel.so
+%{_libdir}/pkgconfig/quarrel-0.1.pc
+%{_datadir}/vala/vapi/quarrel-0.1.vapi
 
 %changelog
 %autochangelog

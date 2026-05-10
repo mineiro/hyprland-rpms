@@ -1,6 +1,6 @@
 Name:           hyprpicker
-Version:        0.4.6
-Release:        %autorelease -b 3
+Version:        0.4.7
+Release:        %autorelease
 Summary:        wlroots-compatible Wayland color picker
 
 # LICENSE: BSD-3-Clause
@@ -8,15 +8,13 @@ Summary:        wlroots-compatible Wayland color picker
 License:        BSD-3-Clause AND HPND-sell-variant
 URL:            https://github.com/hyprwm/hyprpicker
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
-# GCC 15 / newer Fedora toolchains expose a missing direct include upstream.
-Patch0:         patches/0001-include-mutex-for-gcc-15-build.patch
 
 ExcludeArch:    %{ix86}
 
 BuildRequires:  gcc-c++
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(cairo)
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(libjpeg)
 BuildRequires:  pkgconfig(pango)

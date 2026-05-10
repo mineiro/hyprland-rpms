@@ -27,12 +27,12 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - Treat `hyprland-plugins` as ABI-family-coupled with Hyprland. If upstream
   has not published a plugin release for the target Hyprland family, keep
   plugins paused instead of forcing speculative compatibility.
-- Current decision: Hyprland `0.54.x` is shipped without a matching
+- Current decision: Hyprland `0.55.x` is shipped without a matching
   `hyprland-plugins` update; upgrade safety is handled by transitional
   obsoletes in `hyprland` for legacy `0.53.x` plugin RPMs.
 - Current rollout policy: keep legacy `hyprland-plugins` for users that remain
   on `hyprland 0.53.3` (x86_64 path), and do not include `hyprland-plugins`
-  in aarch64 `0.54.x` forward build chains.
+  in aarch64 `0.55.x` forward build chains.
 - Current temporary bundled dependency exceptions (to be reviewed regularly):
   - `xdg-desktop-portal-hyprland`: bundled `sdbus-cpp`
   - `hyprlock`: bundled `sdbus-cpp`
@@ -69,7 +69,8 @@ Suggested next ecosystem packages after the core chain stabilizes:
   `astal-hyprland`, `astal-apps`, `astal-auth`, `astal-battery`,
   `astal-bluetooth`, `astal-greet`, `astal-mpris`, `astal-network`,
   `astal-notifd`, `astal-power-profiles`, `astal-wireplumber`,
-  `astal-wl`, `astal-tray`, `astal-river`, and `astal-cava`.
+  `astal-wl`, `astal-tray`, `astal-river`, `astal-cava`, and
+  `astal-quarrel`.
 - Keep optional Astal integrations split into separate RPMs instead of
   bundling them into one `astal-libs` package, so AGS users only install the
   dependency stacks they actually need.
@@ -109,6 +110,7 @@ Suggested AGS / Astal package order:
 21. `astal-tray`
 22. `astal-river`
 23. `astal-cava`
+24. `astal-quarrel`
 
 ## What to avoid (fresh-start guardrails)
 

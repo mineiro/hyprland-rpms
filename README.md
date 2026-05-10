@@ -43,7 +43,7 @@ Recent package additions include Caelestia support components
 `astal-apps`, `astal-auth`, `astal-battery`, `astal-bluetooth`,
 `astal-cava`, `astal-greet`, `astal-mpris`, `astal-network`,
 `astal-notifd`, `astal-power-profiles`, `astal-river`, `astal-tray`,
-`astal-wireplumber`, `astal-wl`, `aylurs-gtk-shell`) plus the helper
+`astal-wireplumber`, `astal-wl`, `astal-quarrel`, `aylurs-gtk-shell`) plus the helper
 dependencies they need (`appmenu-glib-translator`, `wl-vapi-gen`,
 `libcava`), so Hyprland users do not need a separate COPR just to
 install AGS-related packages.
@@ -51,9 +51,9 @@ install AGS-related packages.
 ## Plugin policy (current)
 
 - `hyprland-plugins` is ABI-coupled to Hyprland and is currently paused for the
-  `0.54.x` stack until upstream publishes a compatible plugins release.
+  `0.55.x` stack until upstream publishes a compatible plugins release.
 - Legacy `0.53.x` plugin RPMs are transition-cleaned by `hyprland` package
-  obsoletes so users can upgrade to `hyprland 0.54.x` without dependency
+  obsoletes so users can upgrade to `hyprland 0.55.x` without dependency
   deadlocks.
 - Existing plugin users can stay on their installed `0.53.x` set; plugin RPMs
   are treated as legacy until a compatible upstream release lands.
