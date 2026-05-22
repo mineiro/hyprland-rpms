@@ -1,19 +1,22 @@
 # Official plugin bundle for Hyprland. Plugin binaries are ABI-coupled to the
 # exact Hyprland release family they are built against.
 #
-# This repo currently ships Hyprland 0.53.3, while upstream plugin tags are
-# published on 0.53.0 / 0.52.0 / ... boundaries. We pin the latest compatible
-# plugin tag (`v0.53.0`) and lock runtime Requires to Hyprland 0.53.3.
+# This repo currently ships Hyprland 0.55.2, while upstream plugin tags are
+# published on 0.55.0 / 0.54.0 / ... boundaries. We pin the latest compatible
+# plugin tag (`v0.55.0`) and lock runtime Requires to Hyprland 0.55.2.
 
-%global hyprland_target_version 0.53.3
+%global hyprland_target_version 0.55.2
 %global __provides_exclude_from ^(%{_libdir}/hyprland/.*\\.so)$
 
 %global plugins %{shrink:
   borders-plus-plus
   csgo-vulkan-fix
   hyprbars
-  hyprexpo
   hyprfocus
+}
+
+%global retired_plugins %{shrink:
+  hyprexpo
   hyprscrolling
   hyprtrails
   hyprwinwrap
@@ -21,7 +24,7 @@
 }
 
 Name:           hyprland-plugins
-Version:        0.53.0
+Version:        0.55.0
 Release:        %autorelease
 Summary:        Official plugins for Hyprland
 
@@ -32,12 +35,14 @@ Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 ExcludeArch:    %{ix86}
 
 BuildRequires:  gcc-c++
+BuildRequires:  glslang-devel
 BuildRequires:  meson
 BuildRequires:  ninja-build
 BuildRequires:  pkgconfig(hyprland) = %{hyprland_target_version}
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libinput)
 BuildRequires:  pkgconfig(libudev)
+BuildRequires:  pkgconfig(lua) >= 5.4
 BuildRequires:  pkgconfig(pangocairo)
 BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(wayland-server)
@@ -46,6 +51,8 @@ BuildRequires:  pkgconfig(xkbcommon)
 Requires:       hyprland%{?_isa} = %{hyprland_target_version}
 # Print Recommends for each split plugin package.
 %{lua:for w in rpm.expand('%plugins'):gmatch('%S+') do print('Recommends: hyprland-plugin-'..w..'\n') end}
+# Retired upstream after the 0.53 plugin series.
+%{lua:for w in rpm.expand('%retired_plugins'):gmatch('%S+') do print('Obsoletes: hyprland-plugin-'..w..' < '..rpm.expand('%{version}-%{release}')..'\n') end}
 
 %description
 Official Hyprland plugins packaged as split subpackages. Plugin binaries are

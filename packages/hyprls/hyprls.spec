@@ -1,5 +1,5 @@
 Name:           hyprls
-Version:        0.13.0
+Version:        0.14.0
 Release:        %autorelease
 Summary:        Language server for Hyprland configuration files
 
@@ -19,7 +19,7 @@ features over the Language Server Protocol.
 %prep
 %autosetup -p1
 # Fedora 43 currently provides Go 1.25.x; upstream's code builds fine with 1.25.
-sed -i 's/^go 1\.26\.0$/go 1.25.0/' go.mod
+sed -i -E 's/^go 1\.26(\.[0-9]+)?$/go 1.25.0/' go.mod
 tar -xzf %{SOURCE1}
 
 %build

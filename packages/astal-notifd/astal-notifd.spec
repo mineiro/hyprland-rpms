@@ -1,6 +1,6 @@
-%global astal_commit 67ddc83e0bdbda6de7f6f15e4fbc5d6b9d2d1b18
+%global astal_commit f58cae8f268dedffb6d1448b5b32f39b71953958
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
-%global snapshot_date 20260430
+%global snapshot_date 20260519
 
 Name:           astal-notifd
 Version:        0.1.0
@@ -22,6 +22,7 @@ BuildRequires:  pkgconfig(gio-2.0)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gobject-2.0)
 BuildRequires:  pkgconfig(json-glib-1.0)
+BuildRequires:  pkgconfig(quarrel-0.1)
 
 %package        devel
 Summary:        Development files for %{name}

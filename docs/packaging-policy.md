@@ -100,17 +100,17 @@ Suggested AGS / Astal package order:
 11. `astal-greet`
 12. `astal-mpris`
 13. `astal-network`
-14. `astal-notifd`
-15. `astal-power-profiles`
-16. `astal-wireplumber`
-17. `appmenu-glib-translator`
-18. `wl-vapi-gen`
-19. `libcava`
-20. `astal-wl`
-21. `astal-tray`
-22. `astal-river`
-23. `astal-cava`
-24. `astal-quarrel`
+14. `astal-quarrel`
+15. `astal-notifd`
+16. `astal-power-profiles`
+17. `astal-wireplumber`
+18. `appmenu-glib-translator`
+19. `wl-vapi-gen`
+20. `libcava`
+21. `astal-wl`
+22. `astal-tray`
+23. `astal-river`
+24. `astal-cava`
 
 ## What to avoid (fresh-start guardrails)
 

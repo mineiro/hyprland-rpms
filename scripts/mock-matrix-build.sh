@@ -234,7 +234,7 @@ fi
 
 declare -a srpms=()
 for pkg in "${packages[@]}"; do
-  latest_srpm="$(ls -1t "${srpm_out}/${pkg}-"*.src.rpm 2>/dev/null | head -n 1 || true)"
+  latest_srpm="$(ls -1t "${srpm_out}/${pkg}-"[0-9]*.src.rpm 2>/dev/null | head -n 1 || true)"
   [[ -n "${latest_srpm}" ]] || die "No SRPM found for ${pkg} under ${srpm_out}"
   srpms+=("${latest_srpm}")
 done

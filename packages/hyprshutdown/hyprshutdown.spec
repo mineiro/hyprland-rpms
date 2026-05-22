@@ -1,5 +1,5 @@
 Name:           hyprshutdown
-Version:        0.1.0
+Version:        0.1.1
 Release:        %autorelease -b 4
 Summary:        Graceful shutdown/logout utility for Hyprland
 

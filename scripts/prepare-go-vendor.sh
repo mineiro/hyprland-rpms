@@ -182,4 +182,15 @@ gosrc="${srcdir}/${go_subdir}"
   normalize_vendor_modules "${gosrc}/go.mod" "${gosrc}/vendor/modules.txt"
 )
 
-tar -cJf "${source_dir}/${source1_name}" -C "${gosrc}" vendor
+case "${source1_name}" in
+  *.tar.gz|*.tgz)
+    tar -czf "${source_dir}/${source1_name}" -C "${gosrc}" vendor
+    ;;
+  *.tar.xz|*.txz)
+    tar -cJf "${source_dir}/${source1_name}" -C "${gosrc}" vendor
+    ;;
+  *)
+    echo "Unsupported Go vendor archive extension: ${source1_name}" >&2
+    exit 1
+    ;;
+esac
