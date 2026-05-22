@@ -27,12 +27,11 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - Treat `hyprland-plugins` as ABI-family-coupled with Hyprland. If upstream
   has not published a plugin release for the target Hyprland family, keep
   plugins paused instead of forcing speculative compatibility.
-- Current decision: Hyprland `0.55.x` is shipped without a matching
-  `hyprland-plugins` update; upgrade safety is handled by transitional
-  obsoletes in `hyprland` for legacy `0.53.x` plugin RPMs.
-- Current rollout policy: keep legacy `hyprland-plugins` for users that remain
-  on `hyprland 0.53.3` (x86_64 path), and do not include `hyprland-plugins`
-  in aarch64 `0.55.x` forward build chains.
+- Current decision: Hyprland `0.55.2` ships with the compatible
+  `hyprland-plugins` `v0.55.0` family. Retired plugin subpackages from the
+  `0.53.x` family are obsoleted by `hyprland-plugins`.
+- Current rollout policy: include `hyprland-plugins` in validation gates only
+  when the plugin package is pinned to the active Hyprland ABI family.
 - Current temporary bundled dependency exceptions (to be reviewed regularly):
   - `xdg-desktop-portal-hyprland`: bundled `sdbus-cpp`
   - `hyprlock`: bundled `sdbus-cpp`

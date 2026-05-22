@@ -49,7 +49,13 @@ jobs:
       - name: Repoclosure
         run: |
           dnf -y install dnf-plugins-core
-          # Plugin RPMs are intentionally paused on 0.53.x until upstream ships
-          # a 0.55.x-compatible release family.
-          dnf --exclude="hyprland-plugins" --exclude="hyprland-plugin-*" \
+          # Retired 0.53 plugin subpackages can remain in COPR metadata after
+          # the 0.55 plugin family replaces them; current plugin packages are
+          # still included in the check.
+          dnf \
+            --exclude="hyprland-plugin-hyprexpo*" \
+            --exclude="hyprland-plugin-hyprscrolling*" \
+            --exclude="hyprland-plugin-hyprtrails*" \
+            --exclude="hyprland-plugin-hyprwinwrap*" \
+            --exclude="hyprland-plugin-xtra-dispatchers*" \
             repoclosure --check "copr:${COPR_OWNER}:${COPR_PROJECT}" --newest --best

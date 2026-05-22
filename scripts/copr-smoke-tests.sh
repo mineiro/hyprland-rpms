@@ -199,7 +199,14 @@ run_inside_container() {
     hyprshutdown
     hyprtoolkit
   )
-  all_packages=("${repo_packages[@]}")
+  plugin_packages=(
+    hyprland-plugins
+    hyprland-plugin-borders-plus-plus
+    hyprland-plugin-csgo-vulkan-fix
+    hyprland-plugin-hyprbars
+    hyprland-plugin-hyprfocus
+  )
+  all_packages=("${repo_packages[@]}" "${plugin_packages[@]}")
 
   log "Checking smoke-test target packages are published in ${repo_id}"
   assert_copr_repo_packages_available "${repo_id}" "${all_packages[@]}"
@@ -254,6 +261,18 @@ run_inside_container() {
   test -x /usr/bin/hyprland-dialog
   compgen -G '/usr/lib/systemd/user/wayland-*.target' >/dev/null
   compgen -G '/usr/lib/systemd/user/wayland-*.service' >/dev/null
+  plugin_sos=(
+    libborders-plus-plus.so
+    libcsgo-vulkan-fix.so
+    libhyprbars.so
+    libhyprfocus.so
+  )
+  for so in "${plugin_sos[@]}"; do
+    test -f "$(rpm --eval '%{_libdir}')/hyprland/${so}" || {
+      echo "Missing expected plugin shared object: ${so}" >&2
+      exit 1
+    }
+  done
 
   log "Running basic CLI smoke checks"
   local hyprctl_rc=0

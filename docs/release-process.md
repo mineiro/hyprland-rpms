@@ -66,14 +66,14 @@
 - `hyprland-plugins` must follow upstream ABI-compatible release families.
 - Do not bump `hyprland-plugins` for a new Hyprland family unless upstream
   publishes a compatible release/tag for that family.
-- Current status: Hyprland `0.55.x` is published and `hyprland-plugins` is
-  intentionally paused pending upstream compatibility release.
-- During this pause, retain transitional `Obsoletes` in `hyprland` so legacy
-  `0.53.x` plugin RPMs are removed automatically on upgrade.
-- Current packaging policy keeps legacy `hyprland-plugins` for users remaining
-  on `hyprland 0.53.3` and excludes it from aarch64 `0.55.x` rollout chains.
-- Repoclosure and smoke gates should exclude `hyprland-plugins` and
-  `hyprland-plugin-*` until a compatible plugin release is available.
+- Current status: Hyprland `0.55.2` is published with the compatible
+  `hyprland-plugins` `v0.55.0` family.
+- Keep transitional `Obsoletes` in `hyprland` for legacy `0.53.x` plugin RPMs
+  until the upgrade path has been exercised across supported Fedora releases.
+- Repoclosure and smoke gates should include `hyprland-plugins` whenever the
+  plugin package is pinned to the active Hyprland ABI family.
+- If old retired plugin RPMs remain in COPR metadata, repoclosure may exclude
+  only those retired subpackage names until the stale build is removed.
 
 ## Validation gates (current)
 
