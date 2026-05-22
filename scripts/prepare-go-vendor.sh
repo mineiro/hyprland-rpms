@@ -176,6 +176,11 @@ srcdir="$(find "${tmpdir}" -mindepth 1 -maxdepth 1 -type d -print -quit)"
 gosrc="${srcdir}/${go_subdir}"
 [[ -f "${gosrc}/go.mod" ]] || { echo "go.mod not found in ${gosrc}"; exit 1; }
 
+go_vendor_go_version="$(awk -F= '/^GO_VENDOR_GO_VERSION=/{print $2}' "${spec_dir}/package.env" 2>/dev/null || true)"
+if [[ -n "${go_vendor_go_version}" ]]; then
+  sed -i -E "s/^go [0-9]+\\.[0-9]+(\\.[0-9]+)?$/go ${go_vendor_go_version}/" "${gosrc}/go.mod"
+fi
+
 (
   cd "${gosrc}"
   GOCACHE="${gocache}" GOMODCACHE="${gomodcache}" GO111MODULE=on go mod vendor
