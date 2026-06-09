@@ -6,8 +6,11 @@
    - `./scripts/check-upstream-versions.sh --changed-only`
    - `./scripts/check-upstream-versions.sh --package <name>`
 2. Update the package spec (`Version`, `Source`, dependency floors, patches)
-   - For shared-library packages, check the required consumer rebuild set:
-     `ABI_REBUILD_BASE=<base-ref> make check-abi-rebuilds`
+   - Before committing, run the worktree preflight gate:
+     `make check-upgrade UPGRADE_BASE_REF=origin/main`
+   - This parses/lints specs and checks that shared-library package bumps also
+     rebuild in-repo `pkgconfig(<package>)` consumers by changing their
+     `Version` or `Release`.
 3. Build SRPM locally:
    - `make srpm PACKAGE=<name>`
 4. Build in `mock` for Fedora 43/44/rawhide (x86_64 baseline):
@@ -60,6 +63,20 @@
   cases before COPR publish: if an in-repo package that ships `*.so.*` changes
   `Version`, any in-repo `pkgconfig(<package>)` consumers must also change
   `Version` or `Release` in the same commit/PR.
+- The same check can be run before commit/push against uncommitted worktree
+  changes with `make check-upgrade UPGRADE_BASE_REF=origin/main`.
+
+## Rawhide Python ABI rebuild rule
+
+- Rawhide may move to the next Python minor before Fedora 43/44 do.
+- Native Python extension packages in this COPR can then become uninstallable
+  on rawhide until they are rebuilt against the new `python(abi)`.
+- If repoclosure reports a stale `python(abi)` dependency, bump the package's
+  `Release` base and rebuild it in COPR even when the upstream version is
+  unchanged.
+- Recent example: `python-materialyoucolor 3.0.2-1.fc45` required
+  `python(abi) = 3.14` after rawhide moved to Python 3.15, so it needed a
+  same-version release rebuild.
 
 ## Hyprland plugins compatibility gate
 

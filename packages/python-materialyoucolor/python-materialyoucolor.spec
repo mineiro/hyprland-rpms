@@ -3,7 +3,7 @@
 
 Name:           python-materialyoucolor
 Version:        3.0.2
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Material You color generation algorithms for Python
 
 License:        MIT

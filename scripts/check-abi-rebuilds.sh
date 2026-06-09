@@ -12,6 +12,9 @@ libraries also rebuild their in-repo pkgconfig consumers in the same change.
 Defaults:
   --base-ref  ABI_REBUILD_BASE or HEAD~1
   --head-ref  ABI_REBUILD_HEAD or HEAD
+
+Use `--head-ref WORKTREE` to compare a commit against the current working tree,
+including uncommitted tracked spec changes.
 EOF
 }
 
@@ -52,14 +55,27 @@ cd "${repo_root}"
 git config --global --add safe.directory "${repo_root}" >/dev/null 2>&1 || true
 
 git rev-parse --verify "${base_ref}^{commit}" >/dev/null
-git rev-parse --verify "${head_ref}^{commit}" >/dev/null
+if [[ "${head_ref}" != "WORKTREE" ]]; then
+  git rev-parse --verify "${head_ref}^{commit}" >/dev/null
+fi
+
+spec_contents() {
+  local ref="$1"
+  local path="$2"
+
+  if [[ "${ref}" == "WORKTREE" ]]; then
+    cat "${path}" 2>/dev/null
+  else
+    git show "${ref}:${path}" 2>/dev/null
+  fi
+}
 
 spec_field() {
   local ref="$1"
   local path="$2"
   local field="$3"
 
-  git show "${ref}:${path}" 2>/dev/null \
+  spec_contents "${ref}" "${path}" \
     | awk -v key="${field}:" '$1 == key { sub(/^[^:]+:[[:space:]]*/, ""); print; exit }'
 }
 
@@ -67,7 +83,7 @@ spec_exports_versioned_shared_library() {
   local ref="$1"
   local path="$2"
 
-  git show "${ref}:${path}" 2>/dev/null \
+  spec_contents "${ref}" "${path}" \
     | grep -Ev '^[[:space:]]*#' \
     | grep -Eq '\.so\.\*'
 }
@@ -77,7 +93,7 @@ spec_uses_pkgconfig() {
   local path="$2"
   local provider="$3"
 
-  git show "${ref}:${path}" 2>/dev/null \
+  spec_contents "${ref}" "${path}" \
     | grep -Ev '^[[:space:]]*#' \
     | grep -Eq "^(BuildRequires|Requires):[[:space:]].*pkgconfig\\(${provider}\\)([[:space:]]|$|[<>=])"
 }
@@ -88,9 +104,18 @@ package_from_path() {
   printf '%s\n' "${path%%/*}"
 }
 
-mapfile -t changed_specs < <(
-  git diff --name-only "${base_ref}" "${head_ref}" -- 'packages/*/*.spec' | sort
-)
+if [[ "${head_ref}" == "WORKTREE" ]]; then
+  mapfile -t changed_specs < <(
+    {
+      git diff --name-only "${base_ref}" -- 'packages/*/*.spec'
+      git ls-files --others --exclude-standard -- 'packages/*/*.spec'
+    } | sort -u
+  )
+else
+  mapfile -t changed_specs < <(
+    git diff --name-only "${base_ref}" "${head_ref}" -- 'packages/*/*.spec' | sort
+  )
+fi
 
 if [[ ${#changed_specs[@]} -eq 0 ]]; then
   echo "No changed specs between ${base_ref} and ${head_ref}; ABI rebuild check skipped."
@@ -102,11 +127,17 @@ for spec in "${changed_specs[@]}"; do
   changed_by_package["$(package_from_path "${spec}")"]="${spec}"
 done
 
-mapfile -t head_specs < <(
-  git ls-tree -r --name-only "${head_ref}" -- packages \
-    | grep -E '^packages/[^/]+/[^/]+\.spec$' \
-    | sort
-)
+if [[ "${head_ref}" == "WORKTREE" ]]; then
+  mapfile -t head_specs < <(
+    find packages -mindepth 2 -maxdepth 2 -type f -name '*.spec' | sort
+  )
+else
+  mapfile -t head_specs < <(
+    git ls-tree -r --name-only "${head_ref}" -- packages \
+      | grep -E '^packages/[^/]+/[^/]+\.spec$' \
+      | sort
+  )
+fi
 
 failures=0
 
@@ -165,6 +196,9 @@ ABI rebuild coverage failed.
 When a shared-library provider version changes, rebuild its in-repo consumers
 in the same change. For same-upstream-version consumers, bump the Release base
 so COPR publishes a newer RPM that links against the new soname.
+
+For local upgrade worktrees before commit/push, run:
+  ./scripts/check-abi-rebuilds.sh --base-ref origin/main --head-ref WORKTREE
 EOF
   exit 1
 fi
