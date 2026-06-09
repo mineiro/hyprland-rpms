@@ -8,9 +8,9 @@
 2. Update the package spec (`Version`, `Source`, dependency floors, patches)
    - Before committing, run the worktree preflight gate:
      `make check-upgrade UPGRADE_BASE_REF=origin/main`
-   - This parses/lints specs and checks that shared-library package bumps also
-     rebuild in-repo `pkgconfig(<package>)` consumers by changing their
-     `Version` or `Release`.
+   - This parses/lints specs and checks that shared-library package bumps and
+     exact `pkgconfig(<package>) = <version>` ABI locks rebuild in-repo
+     consumers by changing their `Version` or `Release`.
 3. Build SRPM locally:
    - `make srpm PACKAGE=<name>`
 4. Build in `mock` for Fedora 43/44/rawhide (x86_64 baseline):
@@ -62,7 +62,9 @@
 - The `Spec Lint` workflow runs `scripts/check-abi-rebuilds.sh` to catch common
   cases before COPR publish: if an in-repo package that ships `*.so.*` changes
   `Version`, any in-repo `pkgconfig(<package>)` consumers must also change
-  `Version` or `Release` in the same commit/PR.
+  `Version` or `Release` in the same commit/PR. The same gate also checks exact
+  `pkgconfig(<package>) = <version>` locks, such as `hyprland-plugins` against
+  `pkgconfig(hyprland)`.
 - The same check can be run before commit/push against uncommitted worktree
   changes with `make check-upgrade UPGRADE_BASE_REF=origin/main`.
 
@@ -83,7 +85,7 @@
 - `hyprland-plugins` must follow upstream ABI-compatible release families.
 - Do not bump `hyprland-plugins` for a new Hyprland family unless upstream
   publishes a compatible release/tag for that family.
-- Current status: Hyprland `0.55.2` is published with the compatible
+- Current status: Hyprland `0.55.3` is published with the compatible
   `hyprland-plugins` `v0.55.0` family.
 - Keep transitional `Obsoletes` in `hyprland` for legacy `0.53.x` plugin RPMs
   until the upgrade path has been exercised across supported Fedora releases.
