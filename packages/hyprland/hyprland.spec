@@ -5,7 +5,7 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.55.2
+Version:        0.55.3
 Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 
@@ -32,7 +32,7 @@ BuildRequires:  pkgconfig(gio-2.0)
 BuildRequires:  pkgconfig(glesv2)
 BuildRequires:  pkgconfig(hwdata)
 BuildRequires:  pkgconfig(hyprcursor) >= 0.1.13
-BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.0
+BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.1
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
 BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0

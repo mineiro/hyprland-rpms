@@ -3,7 +3,7 @@
 %global crate satty
 
 Name:           satty
-Version:        0.20.1
+Version:        0.21.1
 Release:        %autorelease
 Summary:        Modern screenshot annotation tool for Linux
 
@@ -45,9 +45,15 @@ install -Dpm0755 target/release/%{name} %{buildroot}%{_bindir}/%{name}
 install -Dpm0644 %{name}.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
 install -Dpm0644 assets/%{name}.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 install -Dpm0644 org.satty.Satty.metainfo.xml %{buildroot}%{_metainfodir}/org.satty.Satty.metainfo.xml
-install -Dpm0644 completions/%{name}.bash %{buildroot}%{bash_completions_dir}/%{name}
-install -Dpm0644 completions/%{name}.fish %{buildroot}%{fish_completions_dir}/%{name}.fish
-install -Dpm0644 completions/_%{name} %{buildroot}%{zsh_completions_dir}/_%{name}
+bash_completion="$(find target/rpm/build -path '*/out/completions/%{name}.bash' -print -quit)"
+manpage="$(find target/rpm/build -path '*/out/%{name}.1' -print -quit)"
+test -n "${bash_completion}"
+test -n "${manpage}"
+completion_dir="$(dirname "${bash_completion}")"
+install -Dpm0644 "${completion_dir}/%{name}.bash" %{buildroot}%{bash_completions_dir}/%{name}
+install -Dpm0644 "${completion_dir}/%{name}.fish" %{buildroot}%{fish_completions_dir}/%{name}.fish
+install -Dpm0644 "${completion_dir}/_%{name}" %{buildroot}%{zsh_completions_dir}/_%{name}
+install -Dpm0644 "${manpage}" %{buildroot}%{_mandir}/man1/%{name}.1
 
 %if %{with check}
 %check
@@ -66,6 +72,7 @@ install -Dpm0644 completions/_%{name} %{buildroot}%{zsh_completions_dir}/_%{name
 %{bash_completions_dir}/%{name}
 %{fish_completions_dir}/%{name}.fish
 %{zsh_completions_dir}/_%{name}
+%{_mandir}/man1/%{name}.1*
 
 %changelog
 %autochangelog
