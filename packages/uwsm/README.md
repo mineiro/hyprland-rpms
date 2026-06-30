@@ -1,5 +1,9 @@
 # uwsm
 
-Starter packaging directory for `uwsm`.
+Fedora RPM packaging for `uwsm`.
 
-Update `uwsm.spec` and `package.env` before first build.
+Current packaging target:
+
+- upstream release `0.26.6` from `Vladimir-csp/uwsm`
+- noarch Python/shell session manager package
+- required by the `hyprland-uwsm` subpackage runtime dependency

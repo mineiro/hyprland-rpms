@@ -2,6 +2,11 @@
 
 Fedora RPM packaging for `swayosd` (https://github.com/ErikReider/SwayOSD).
 
+Current packaging target:
+
+- upstream release `0.3.2`
+- Rust/Meson OSD service with vendored `Source1` Rust dependencies
+
 Local validation status:
 
 - `make srpm PACKAGE=swayosd`: pass

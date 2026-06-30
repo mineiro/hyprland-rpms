@@ -1,4 +1,4 @@
-# hyprland (starter package)
+# hyprland
 
 This directory contains the Fedora RPM packaging for stable `hyprland`.
 
@@ -8,10 +8,16 @@ Notes:
 - Keep `hyprland` and `hyprland-git` separate specs if you decide to ship both.
 - Expect synchronized updates with `hypr*` libraries and `aquamarine`.
 
-Before first COPR build, verify:
+Current packaging target:
+
+- upstream release `0.55.4`
+- published in `mineiro/hyprland` as COPR build `10662400`
+- `hyprland-plugins` is rebuilt afterward with an exact
+  `%{hyprland_target_version}` lock
+
+Before future COPR builds, verify:
 
 1. `Version` and `Source0`
 2. `BuildRequires` match current upstream build system
 3. `%files` reflects actual installed paths
 4. Package builds in Fedora 43/44 mock chroots
-

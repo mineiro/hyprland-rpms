@@ -15,7 +15,13 @@ Then start Codex from this directory and paste one of the prompts below.
 ## Default resume prompt (recommended)
 
 ```text
-Read `AGENTS.md`, `README.md`, and `docs/packaging-policy.md`, then continue from the next step in the package matrix. Update `AGENTS.md` as you make progress.
+Read `AGENTS.md`, `README.md`, `docs/release-process.md`, and `docs/packaging-policy.md`, then continue from the latest handoff / next step in `AGENTS.md`. Update `AGENTS.md` as you make progress.
+```
+
+## Resume routine maintenance
+
+```text
+Read `AGENTS.md` and `docs/release-process.md`. Run `./scripts/check-upstream-versions.sh --changed-only`, apply the maintenance batch playbook, validate with `make check-upgrade UPGRADE_BASE_REF=origin/main` plus a focused mock matrix, then commit/push and trigger COPR in dependency order if all gates pass.
 ```
 
 ## Resume and scaffold next foundational packages
@@ -53,6 +59,7 @@ Read `AGENTS.md` and `docs/release-process.md`. Propose and implement a minimal 
 ## Session hygiene (important)
 
 - Always read `AGENTS.md` first.
+- For update batches, follow `docs/release-process.md` before triggering COPR.
 - Update `AGENTS.md` after meaningful progress (status changes, blockers, next steps).
 - Keep package changes isolated to `packages/<name>/`.
 - Run:

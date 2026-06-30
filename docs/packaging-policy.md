@@ -27,9 +27,11 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - Treat `hyprland-plugins` as ABI-family-coupled with Hyprland. If upstream
   has not published a plugin release for the target Hyprland family, keep
   plugins paused instead of forcing speculative compatibility.
-- Current decision: Hyprland `0.55.2` ships with the compatible
-  `hyprland-plugins` `v0.55.0` family. Retired plugin subpackages from the
-  `0.53.x` family are obsoleted by `hyprland-plugins`.
+- Current decision: Hyprland `0.55.4` ships with the compatible
+  `hyprland-plugins` `v0.55.0` family. Later Hyprland `0.55.x` patch releases
+  may rebuild the same plugin source tag with a new RPM release and updated
+  `%{hyprland_target_version}`. Retired plugin subpackages from the `0.53.x`
+  family are obsoleted by `hyprland-plugins`.
 - Current rollout policy: include `hyprland-plugins` in validation gates only
   when the plugin package is pinned to the active Hyprland ABI family.
 - Current temporary bundled dependency exceptions (to be reviewed regularly):

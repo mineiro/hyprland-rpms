@@ -35,6 +35,51 @@
 8. Run repoclosure checks on the COPR project
 9. Run smoke tests (container CI baseline; local KVM for deeper runtime checks when relevant)
 
+## Maintenance batch playbook
+
+Use this when the routine upstream check finds several independent package
+bumps plus a small ABI-coupled Hypr stack rebuild.
+
+1. Check for drift and update specs:
+   - `./scripts/check-upstream-versions.sh --changed-only`
+   - Bump `Version`, reset stale same-version rebuild bases on true upstream
+     bumps, and update dependency floors when a provider ABI moves.
+2. Generate SRPMs for every changed package:
+   - `make srpm PACKAGE=<pkg>`
+   - Include same-version rebuild consumers in this set, not only packages
+     whose upstream version changed.
+3. Run the pre-push gate:
+   - `make check-upgrade UPGRADE_BASE_REF=origin/main`
+   - If it reports an ABI provider miss, bump the consumer `Release` base
+     (`%autorelease -b N`) and regenerate that consumer SRPM.
+4. Run a focused mock matrix in dependency order:
+   - `./scripts/mock-matrix-build.sh --skip-srpm --mode chain --release 43 --release 44 --release rawhide --arch x86_64 --addrepo 'https://download.copr.fedorainfracloud.org/results/mineiro/hyprland/fedora-$releasever-$basearch/' <ordered packages...>`
+   - Put ABI providers before consumers. For example:
+     `aquamarine glaze hyprtoolkit hyprland hyprland-plugins`.
+   - Put leaf packages anywhere in the same chain after their SRPMs exist.
+5. Commit and push only after the local gates are green.
+6. Trigger COPR with explicit batch ordering:
+   - Start independent leaf/support builds together with `--with-build-id`.
+   - Start provider builds together, for example `aquamarine` and `glaze`.
+   - Queue consumers with `--after-build-id <provider-build-id>`.
+   - Queue `hyprland-plugins` with `--after-build-id <hyprland-build-id>`.
+7. Watch the batch:
+   - `copr-cli watch-build <build-id>...`
+   - If `watch-build` is quiet, spot-check long builds with
+     `copr-cli status <build-id>`.
+8. Update `AGENTS.md` with the commit, build IDs, validation results, and next
+   open task before ending the session.
+
+Recent example from the 2026-06-30 maintenance pass:
+
+- Commit: `27db241` (`Update Hyprland maintenance package set`)
+- Leaf/support builds: `app2unit` `10662392`, `swayosd` `10662393`,
+  `caelestia-cli` `10662394`, `dart-sass` `10662395`, `uwsm` `10662396`
+- Provider builds: `aquamarine` `10662397`, `glaze` `10662398`
+- Rebuilds after providers: `hyprtoolkit` `10662399`, `hyprland` `10662400`
+- Exact Hyprland ABI rebuild: `hyprland-plugins` `10662401`
+- All listed COPR builds succeeded.
+
 ## Dependency-first rollout rule
 
 - Do not treat "noarch" as exempt from dependency sequencing.
@@ -85,8 +130,11 @@
 - `hyprland-plugins` must follow upstream ABI-compatible release families.
 - Do not bump `hyprland-plugins` for a new Hyprland family unless upstream
   publishes a compatible release/tag for that family.
-- Current status: Hyprland `0.55.3` is published with the compatible
+- Current status: Hyprland `0.55.4` is published with the compatible
   `hyprland-plugins` `v0.55.0` family.
+- It is valid for the plugin source tag to remain at `v0.55.0` while the RPM
+  release and `%{hyprland_target_version}` track later compatible Hyprland
+  `0.55.x` patch releases.
 - Keep transitional `Obsoletes` in `hyprland` for legacy `0.53.x` plugin RPMs
   until the upgrade path has been exercised across supported Fedora releases.
 - Repoclosure and smoke gates should include `hyprland-plugins` whenever the

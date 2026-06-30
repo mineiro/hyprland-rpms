@@ -50,13 +50,15 @@ install AGS-related packages.
 
 ## Plugin policy (current)
 
-- `hyprland-plugins` is ABI-coupled to Hyprland and is currently paused for the
-  `0.55.x` stack until upstream publishes a compatible plugins release.
+- `hyprland-plugins` is ABI-coupled to Hyprland.
+- The active stack ships Hyprland `0.55.4` with the compatible
+  `hyprland-plugins` upstream `v0.55.0` family.
+- For Hyprland `0.55.x` patch releases, keep the plugin source tag at
+  `v0.55.0` unless upstream publishes a newer compatible plugin tag, and bump
+  the RPM release plus `%{hyprland_target_version}` for the exact rebuild.
 - Legacy `0.53.x` plugin RPMs are transition-cleaned by `hyprland` package
   obsoletes so users can upgrade to `hyprland 0.55.x` without dependency
   deadlocks.
-- Existing plugin users can stay on their installed `0.53.x` set; plugin RPMs
-  are treated as legacy until a compatible upstream release lands.
 
 ## Quick start
 
@@ -83,6 +85,12 @@ Parse/lint specs:
 
 ```bash
 make check-specs
+```
+
+Run the pre-push upgrade gate after version or rebuild changes:
+
+```bash
+make check-upgrade UPGRADE_BASE_REF=origin/main
 ```
 
 Check upstream versions before bumping:

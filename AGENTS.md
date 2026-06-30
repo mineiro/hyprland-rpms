@@ -67,6 +67,42 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-06-30):
+  - Commit `27db241` (`Update Hyprland maintenance package set`) is pushed to
+    `origin/main`.
+  - Routine upstream maintenance updated and published:
+    - `app2unit` `1.4.2` (COPR build `10662392`)
+    - `swayosd` `0.3.2` (COPR build `10662393`)
+    - `caelestia-cli` `1.1.0` (COPR build `10662394`)
+    - `dart-sass` `1.101.0` (COPR build `10662395`)
+    - `uwsm` `0.26.6` (COPR build `10662396`)
+    - `aquamarine` `0.12.1` (COPR build `10662397`)
+    - `glaze` `7.8.3` (COPR build `10662398`)
+    - `hyprtoolkit` `0.5.4-4` same-version rebuild for `aquamarine 0.12.1`
+      (COPR build `10662399`)
+    - `hyprland` `0.55.4` (COPR build `10662400`)
+    - `hyprland-plugins` `0.55.0-3` same-source rebuild targeting
+      `hyprland 0.55.4` (COPR build `10662401`)
+  - All listed COPR builds succeeded in `mineiro/hyprland`.
+  - Local validation before commit:
+    - `./scripts/check-upstream-versions.sh --changed-only` clean after edits
+    - SRPM generation passed for all changed/rebuilt packages
+    - `make check-upgrade UPGRADE_BASE_REF=origin/main` passed
+    - Fedora 43/44/rawhide x86_64 focused `mock --chain` passed against the
+      `mineiro/hyprland` COPR dependency repo
+  - COPR publish order used:
+    - leaf/support batch: `app2unit`, `swayosd`, `caelestia-cli`,
+      `dart-sass`, `uwsm`
+    - provider batch: `aquamarine`, `glaze`
+    - provider consumers after provider batch: `hyprtoolkit`, `hyprland`
+    - exact Hyprland ABI consumer after `hyprland`: `hyprland-plugins`
+  - Current plugin policy: `hyprland-plugins` is active for the `0.55.x`
+    Hyprland family using upstream tag `v0.55.0`; for later Hyprland `0.55.x`
+    patch releases, update `%{hyprland_target_version}` and bump RPM
+    `Release`, but do not change the plugin source tag unless upstream publishes
+    a newer compatible tag.
+  - Maintenance playbook has been documented in `docs/release-process.md` and
+    COPR batch-order examples in `docs/copr-setup.md`.
 - `packages/uwsm/` has been added (ported from `solopasha/hyprlandRPM` spec baseline, adapted to this monorepo style).
 - `scripts/mock-matrix-build.sh` has been added for local Fedora/arch matrix runs (`chain` or `rebuild` mode), including optional `--addrepo`, `--skip-srpm`, and `--continue-on-failure`.
   - `--addrepo` placeholder expansion now normalizes rawhide to the COPR `fedora-rawhide-$basearch` path instead of the numeric mock `releasever`, so generic COPR URLs work across Fedora 43/44/rawhide.
@@ -120,13 +156,26 @@ Important:
 - `packages/hyprdim/` has been added at the latest upstream release (`3.0.1`, `donovanglover/hyprdim`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It uses vendored Rust crates (`Source1`) generated during SRPM creation so builds work offline in mock/COPR.
 - `.copr/Makefile` now conditionally supports vendored-source generation for both Rust packages (`%cargo_prep` + `Source1`) and Go packages (`BuildRequires: golang` + `Source1`), including robust `%{_sourcedir}` / `spectool -R` handling for COPR SCM `make_srpm`, so offline-capable vendored SRPMs (for example `hyprdim`, `hyprls`, and `cliphist`) build reliably in COPR.
 - `packages/hyprshutdown/` has been added at the latest upstream release (`0.1.0`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds.
-- `packages/hyprland-plugins/` has been added as a split-plugin bundle package targeting the latest compatible upstream tag for the pinned plugin stack (`v0.53.0`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide, and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It intentionally version-locks plugin subpackages to `hyprland 0.53.3`; Hyprland `0.54.x` is shipped separately without forcing plugin ABI compatibility yet.
+- `packages/hyprland-plugins/` is a split-plugin bundle package. It currently
+  uses upstream tag `v0.55.0`, version-locks plugin subpackages to the active
+  packaged Hyprland patch release, and has been rebuilt successfully for
+  `hyprland 0.55.4` as COPR build `10662401`. Older `0.53.x` plugin RPMs are
+  treated as legacy upgrade-path artifacts.
 - `packages/waybar/` has been added at the latest upstream release (`0.15.0`, `Alexays/Waybar`) as a stable `waybar` package (not `waybar-git`) to provide a newer build than Fedora's default repo version when needed; local SRPM and clean `mock --rebuild` pass on Fedora 43/44/rawhide, and COPR builds are now passing in `mineiro/hyprland`.
 - `packages/awww/` has been added as a wallpaper daemon package for Wayland (Codeberg successor/rename of `swww`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide and onboarded to COPR (`mineiro/hyprland`) with successful Fedora 43/44/rawhide builds. It remains pinned as of `2026-03-11` to the upstream `main` snapshot (`2c86d41d`, `Version: 0.11.2^git20260212`) because the latest tagged release (`v0.11.2`) still builds the legacy `swww`/`swww-daemon` binaries.
-- `packages/swayosd/` has been updated to the latest upstream release (`0.3.1`, `ErikReider/SwayOSD`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64, and onboarded to COPR (`mineiro/hyprland`) with successful manual build `10230976` across Fedora 43/44/rawhide on both x86_64 and aarch64. It uses vendored Rust crates (`Source1`) generated during SRPM creation so builds work offline in mock/COPR.
+- `packages/swayosd/` has been updated to upstream release `0.3.2`
+  (`ErikReider/SwayOSD`), locally validated via SRPM + Fedora 43/44/rawhide
+  x86_64 `mock --chain`, and published in COPR as build `10662393`. It uses
+  vendored Rust crates (`Source1`) generated during SRPM creation so builds
+  work offline in mock/COPR.
 - `packages/hyprls/` has been added at the latest upstream release (`0.13.0`, `hyprland-community/hyprls`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It uses vendored Go modules (`Source1`) so offline mock builds work, and currently carries a small `go.mod` toolchain compatibility adjustment for Fedora 43's Go 1.25.x.
 - `packages/tree-sitter-hyprlang/` has been added at the latest upstream release (`3.1.0`, `tree-sitter-grammars/tree-sitter-hyprlang`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It follows Fedora tree-sitter packaging macros with source package name `tree-sitter-hyprlang`, producing `libtree-sitter-hyprlang` and `libtree-sitter-hyprlang-devel`.
-- `packages/app2unit/` has been added at the latest upstream release (`1.4.0`, `Vladimir-csp/app2unit`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10204233` across Fedora 43/44/rawhide on both x86_64 and aarch64. It is a noarch POSIX shell launcher package with a generated `scdoc` man page, runtime `Requires: systemd` / `xdg-utils`, and `Recommends: xdg-terminal-exec >= 0.13.0`.
+- `packages/app2unit/` has been updated to upstream release `1.4.2`
+  (`Vladimir-csp/app2unit`), locally validated via SRPM + Fedora 43/44/rawhide
+  x86_64 `mock --chain`, and published in COPR as build `10662392`. It is a
+  noarch POSIX shell launcher package with a generated `scdoc` man page,
+  runtime `Requires: systemd` / `xdg-utils`, and `Recommends:
+  xdg-terminal-exec >= 0.13.0`.
 - `packages/swappy/` has been added at the latest upstream release (`1.8.0`, `jtheoof/swappy`), based on Fedora's existing `swappy` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It updates Fedora's stale `1.5.1` baseline while keeping the spec close enough for a future Fedora dist-git bump, and it is now onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10204851` across Fedora 43/44/rawhide on both x86_64 and aarch64.
 - `packages/cliphist/` has been added at the latest upstream release (`0.7.0`, `sentriz/cliphist`), based closely on Fedora's existing `cliphist` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64. It is a Go-based Wayland clipboard history manager with runtime `Requires: wl-clipboard` / `xdg-utils`, uses a vendored Go `Source1` tarball so builds stay offline in mock/COPR, and is now onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10204957` across Fedora 43/44/rawhide on both x86_64 and aarch64.
 - `packages/departure/` has been added at the latest upstream release (`0.1.0`, `mpalatsi/departure`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10235517` across Fedora 43/44/rawhide on both x86_64 and aarch64. It is a GTK4/gtk4-layer-shell Rust Wayland logout app and uses a vendored Rust `Source1` tarball so builds stay offline in mock/COPR.
@@ -134,8 +183,17 @@ Important:
 - `packages/material-symbols-fonts/` has been added as a new Google icon-font package at upstream snapshot `20260327` (`Version: 0^git20260327`) from the actively updated `google/material-design-icons` `master` branch; local SRPM generation and clean Fedora 43/44/rawhide x86_64 `mock --rebuild` pass, it uses Fedora font packaging macros (`%fontpkg`) instead of manual font staging, repacks a minimal local `Source0` from the upstream raw files so the SRPM stays small, and it intentionally packages the current `Material Symbols` variable TTF set rather than trying to fake-update the legacy frozen `material-icons-fonts` `4.0.0` line.
 - Repo-wide `rpmlint` filtering now suppresses the known false-positive `invalid-url Source1` warning for locally generated vendored `*-vendor.tar.gz` / `*.tar.xz` archives, so `make check-specs` only reports remaining actionable warnings.
 - `packages/python-materialyoucolor/` has been added at the latest upstream release (`3.0.2`, `T-Dynamos/materialyoucolor-python`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205354` across Fedora 43/44/rawhide x86_64. It packages the upstream pybind11-backed quantization extension so the native Material You quantizer remains available.
-- `packages/caelestia-cli/` has been updated to the latest upstream release (`1.0.7`, `caelestia-dots/cli`), locally validated via SRPM + Fedora 43/44/rawhide x86_64 `mock --rebuild` with `python-materialyoucolor` available from the `mineiro/hyprland` COPR repo, and COPR build `10346410` passed in `mineiro/hyprland`. It is a noarch Python CLI package that installs the `caelestia` command, fish completion, and Fedora/COPR runtime recommendations for the broader Caelestia stack.
-- `packages/dart-sass/` has been updated to the latest upstream release (`1.98.0`, `sass/dart-sass`). It packages the official standalone Linux x64 release, provides `/usr/bin/sass`, and intentionally `Conflicts: rubygem-sass`. The `1.98.0` bump has been re-validated locally via fresh SRPM generation plus a clean Fedora 43 x86_64 `mock --rebuild`; prior validation for the package family also includes Fedora 44/rawhide x86_64 rebuilds and installed-package compile smoke tests.
+- `packages/caelestia-cli/` has been updated to upstream release `1.1.0`
+  (`caelestia-dots/cli`), locally validated via SRPM + Fedora 43/44/rawhide
+  x86_64 `mock --chain` with `python-materialyoucolor` available from the
+  `mineiro/hyprland` COPR repo, and COPR build `10662394` passed in
+  `mineiro/hyprland`. It is a noarch Python CLI package that installs the
+  `caelestia` command, fish completion, and Fedora/COPR runtime recommendations
+  for the broader Caelestia stack.
+- `packages/dart-sass/` has been updated to upstream release `1.101.0`
+  (`sass/dart-sass`). It packages the official standalone Linux x64/aarch64
+  releases, provides `/usr/bin/sass`, intentionally `Conflicts: rubygem-sass`,
+  and COPR build `10662395` passed in `mineiro/hyprland`.
 - On `2026-03-21`, the AGS/Astal stack was imported from the working `~/Code/ags-rpms` repo into this monorepo so users can install it from the same COPR as the Hyprland packages. New package directories now exist for `gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`, and `aylurs-gtk-shell`; `make check-specs` passes, local SRPM generation passes, and `mock --chain` passes on Fedora 43/44/rawhide x86_64 for the full stack. The Astal libraries were then bumped the same day to the newer upstream `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`, upstream `main` as of `2026-03-19`), and the same Fedora 43/44/rawhide x86_64 chain remains green. `aylurs-gtk-shell` keeps a small downstream patch set for packaged `gnim`, safer GIR defaults, Fedora `npx`, and `gtk4-layer-shell` soname handling.
 - Later on `2026-03-21`, `astal-mpris`, `astal-network`, and `astal-wireplumber` were added as split optional Astal integrations instead of a bundled `astal-libs` package. Local SRPM generation plus standalone Fedora 43/44/rawhide x86_64 `mock --rebuild` all pass for the three new packages. The same day, the shared Go vendoring path in `.copr/Makefile` was aligned with `scripts/prepare-go-vendor.sh`, which fixed the `aylurs-gtk-shell` COPR source-generation mismatch and led to successful retry build `10249186`.
 - Later on `2026-03-21`, `astal-apps`, `astal-auth`, `astal-battery`, `astal-bluetooth`, `astal-greet`, `astal-notifd`, and `astal-power-profiles` were added as more split optional Astal integrations. `make check-specs` plus local SRPM generation and standalone Fedora 43/44/rawhide x86_64 `mock --rebuild` all pass for the whole batch.
@@ -295,13 +353,13 @@ Note:
 | `hyprpwcenter`                | ecosystem app                      |       26 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.1.2`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing                                                                                                                                                                                                                                                       |
 | `hyprdim`                     | ecosystem app (Rust)               |       27 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `3.0.1` from `donovanglover/hyprdim`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds                                                                                                                                                              |
 | `hyprshutdown`                | ecosystem app                      |       28 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.1.0`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide via `mineiro/hyprland` COPR repo deps; COPR builds passing; depends on `hyprtoolkit`, `hyprutils`, `glaze`, `pixman`, and `libdrm`                                                                                                                                                                               |
-| `hyprland-plugins`            | ecosystem plugins                  |       29 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | official Hyprland plugins bundle; latest compatible upstream tag for pinned plugin stack is `v0.53.0` (repo tags are version-family aligned); packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.53.3`; intentionally kept as a legacy compatibility path and excluded from the aarch64 `0.54.x` rollout                                                                     |
+| `hyprland-plugins`            | ecosystem plugins                  |       29 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | official Hyprland plugins bundle; active compatible upstream tag for the `0.55.x` stack is `v0.55.0`; packaged as split plugin subpackages with strict runtime `Requires: hyprland = 0.55.4`; same-source rebuild published as COPR build `10662401` after `hyprland` build `10662400`; older `0.53.x` plugin RPMs are legacy upgrade-path artifacts                                                                     |
 | `waybar`                      | desktop bar (Wayland/Hyprland)     |       30 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream stable `0.15.0` from `Alexays/Waybar`; packaged as stable `waybar` (not `waybar-git`) to provide a newer build than Fedora default repos; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide; COPR builds passing                                                                                                                                                            |
 | `awww`                        | wallpaper daemon (Wayland)         |       31 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | Codeberg successor/rename of `swww`; re-checked on `2026-03-11`, and the latest tagged release `v0.11.2` still pre-dates the rename and builds `swww`, so this package remains pinned to upstream `main` snapshot commit `2c86d41d` (`Version: 0.11.2^git20260212`) to provide renamed `awww`/`awww-daemon` binaries; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide with vendored Rust `Source1` tarball; COPR builds passing |
-| `swayosd`                     | OSD service (Wayland)              |       32 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.3.1` from `ErikReider/SwayOSD`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds; onboarded to COPR with successful manual build `10230976` across Fedora 43/44/rawhide on both x86_64 and aarch64                                                                                                        |
+| `swayosd`                     | OSD service (Wayland)              |       32 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.3.2` from `ErikReider/SwayOSD`; local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass; uses vendored Rust `Source1` tarball generated during SRPM creation for offline mock/COPR builds; COPR build `10662393` succeeded                                                                                                                                                       |
 | `hyprls`                      | language server (Hyprland config)  |       33 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | latest upstream `0.13.0` from `hyprland-community/hyprls`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; uses vendored Go `Source1` tarball for offline mock builds and a temporary `go.mod` compatibility adjustment for Fedora 43 Go 1.25.x                                                                                                                                   |
 | `tree-sitter-hyprlang`        | tree-sitter grammar (Hyprlang)     |       34 | `MRH`       | `ok`     | `ok`     | `ok`         | `no`           | `-`         | latest upstream `3.1.0` from `tree-sitter-grammars/tree-sitter-hyprlang`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; packaged with Fedora `BuildSystem: tree_sitter`, producing `libtree-sitter-hyprlang` and `libtree-sitter-hyprlang-devel`                                                                                                                                |
-| `app2unit`                    | desktop-entry launcher helper      |       35 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `1.4.0` from `Vladimir-csp/app2unit`; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; onboarded to COPR with successful first manual build `10204233` across Fedora 43/44/rawhide on both x86_64 and aarch64; noarch POSIX shell package with generated `scdoc` man page and helper `app2unit-open*` / `app2unit-term*` links                                  |
+| `app2unit`                    | desktop-entry launcher helper      |       35 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `1.4.2` from `Vladimir-csp/app2unit`; local SRPM + Fedora 43/44/rawhide x86_64 `mock --chain` pass; COPR build `10662392` succeeded; noarch POSIX shell package with generated `scdoc` man page and helper `app2unit-open*` / `app2unit-term*` links                                  |
 | `swappy`                      | snapshot editor (Wayland)          |       36 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `1.8.0` from `jtheoof/swappy`; based on Fedora's existing `swappy` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64; updates Fedora's official `1.5.1` baseline while keeping the spec close to a future Fedora dist-git bump; onboarded to COPR with successful first manual build `10204851` across Fedora 43/44/rawhide on both x86_64 and aarch64 |
 | `cliphist`                    | clipboard history manager          |       37 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.7.0` from `sentriz/cliphist`; based closely on Fedora's existing `cliphist` packaging and locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64; Go-based Wayland clipboard history manager with runtime `Requires: wl-clipboard` / `xdg-utils`; uses vendored Go `Source1` tarball for offline mock/COPR builds; onboarded to COPR with successful first manual build `10204957` across Fedora 43/44/rawhide on both x86_64 and aarch64 |
 | `departure`                   | logout app (Wayland)               |       38 | `COPR`      | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | latest upstream `0.1.0` from `mpalatsi/departure`; GTK4/gtk4-layer-shell Rust logout app; local SRPM + clean `mock --rebuild` pass on Fedora 43/44/rawhide x86_64; uses vendored Rust `Source1` tarball for offline mock/COPR builds; onboarded to COPR with successful first manual build `10235517` across Fedora 43/44/rawhide on both x86_64 and aarch64 |
@@ -355,10 +413,12 @@ Use a staged validation approach instead of a single "smoke test":
 
 ## Suggested next steps (carry-over)
 
-1. Keep `hyprland-plugins` excluded from the aarch64 `0.54.x` rollout path unless/until upstream publishes a compatible plugin family.
+1. Run post-publish `repoclosure` and container smoke checks against the
+   `mineiro/hyprland` COPR after the 2026-06-30 maintenance publish if that has
+   not already been done in a follow-up session.
 2. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
 3. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-4. Re-run `repoclosure` after the aarch64 rollout completes and verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64 and aarch64.
+4. Verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64 and aarch64 after larger ABI or architecture rollouts.
 5. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
 6. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
 7. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
@@ -449,4 +509,10 @@ When resuming, start by reading:
 
 Primary near-term task:
 
-- Keep the container smoke-test path (`scripts/copr-smoke-tests.sh` + CI workflow) as the fast baseline, continue hardening the local libvirt/KVM graphical smoke stage (GDM/default-session path), and then shift focus to packaging-policy cleanup plus the next ecosystem packages.
+- Run the post-COPR-publish repo checks for the latest maintenance batch if
+  they are still pending (`repoclosure`, `./scripts/copr-smoke-tests.sh mineiro
+  hyprland`, then KVM smoke as needed). After that, continue hardening the local
+  libvirt/KVM graphical smoke stage and pick up the remaining ecosystem
+  onboarding work (`hyprls`, `tree-sitter-hyprlang`, `satty`,
+  `material-symbols-fonts`, and the optional Astal integrations still marked
+  `COPR pkg entry: no` in the matrix).

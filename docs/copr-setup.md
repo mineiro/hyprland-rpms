@@ -58,6 +58,48 @@ For dependent package stacks, expand step 2 into a dependency-first sequence:
 3. Trigger dependent packages afterward
 4. Use explicit ordering rather than submitting the whole stack in parallel
 
+## Maintenance batch ordering
+
+For routine maintenance batches, do not submit the whole changed set as one
+parallel group. Use COPR build ordering to preserve ABI and repository metadata
+sequencing.
+
+Recommended pattern:
+
+1. Trigger independent leaf/support packages together:
+
+   ```bash
+   first="$(copr-cli build-package mineiro/hyprland --nowait --name app2unit | awk '/Created builds:/ { print $3 }')"
+   copr-cli build-package mineiro/hyprland --nowait --with-build-id "$first" --name caelestia-cli
+   copr-cli build-package mineiro/hyprland --nowait --with-build-id "$first" --name dart-sass
+   copr-cli build-package mineiro/hyprland --nowait --with-build-id "$first" --name swayosd
+   copr-cli build-package mineiro/hyprland --nowait --with-build-id "$first" --name uwsm
+   ```
+
+2. Trigger ABI/header providers together:
+
+   ```bash
+   provider="$(copr-cli build-package mineiro/hyprland --nowait --name aquamarine | awk '/Created builds:/ { print $3 }')"
+   copr-cli build-package mineiro/hyprland --nowait --with-build-id "$provider" --name glaze
+   ```
+
+3. Queue consumers after providers:
+
+   ```bash
+   copr-cli build-package mineiro/hyprland --nowait --after-build-id "$provider" --name hyprtoolkit
+   hyprland_build="$(copr-cli build-package mineiro/hyprland --nowait --after-build-id "$provider" --name hyprland | awk '/Created builds:/ { print $3 }')"
+   copr-cli build-package mineiro/hyprland --nowait --after-build-id "$hyprland_build" --name hyprland-plugins
+   ```
+
+4. Watch all returned build IDs:
+
+   ```bash
+   copr-cli watch-build <build-id>...
+   ```
+
+Record the final build IDs in `AGENTS.md` so the next agent knows which COPR
+publish completed and which validation gates remain.
+
 ## Notes on auto-updating versions
 
 COPR can rebuild on webhook events, but it does not update spec versions on its own.
