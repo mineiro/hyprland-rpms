@@ -8,9 +8,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: repoclosure-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   repoclosure:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +43,7 @@ jobs:
           name=COPR ${COPR_OWNER}/${COPR_PROJECT}
           baseurl=https://download.copr.fedorainfracloud.org/results/${COPR_OWNER}/${COPR_PROJECT}/fedora-\$releasever-\$basearch/
           type=rpm-md
-          skip_if_unavailable=True
+          skip_if_unavailable=False
           gpgcheck=1
           gpgkey=https://download.copr.fedorainfracloud.org/results/${COPR_OWNER}/${COPR_PROJECT}/pubkey.gpg
           repo_gpgcheck=0
@@ -48,14 +53,39 @@ jobs:
 
       - name: Repoclosure
         run: |
-          dnf -y install dnf-plugins-core
+          repo_id="copr:${COPR_OWNER}:${COPR_PROJECT}"
+          dnf -y --disablerepo="${repo_id}" --setopt=install_weak_deps=0 install dnf-plugins-core
+          dnf -q --refresh --repo="${repo_id}" makecache
+
           # Retired 0.53 plugin subpackages can remain in COPR metadata after
           # the 0.55 plugin family replaces them; current plugin packages are
           # still included in the check.
-          dnf \
+          set +e
+          dnf -q --refresh \
             --exclude="hyprland-plugin-hyprexpo*" \
             --exclude="hyprland-plugin-hyprscrolling*" \
             --exclude="hyprland-plugin-hyprtrails*" \
             --exclude="hyprland-plugin-hyprwinwrap*" \
             --exclude="hyprland-plugin-xtra-dispatchers*" \
-            repoclosure --check "copr:${COPR_OWNER}:${COPR_PROJECT}" --newest --best
+            repoclosure --check "${repo_id}" --newest --best > /tmp/repoclosure.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/repoclosure.log
+
+          if [ "${status}" -ne 0 ]; then
+            {
+              echo "### Repoclosure failed for Fedora ${{ matrix.fedora_version }}"
+              echo
+              echo '```text'
+              sed -n '/^package:/,$p' /tmp/repoclosure.log
+              echo '```'
+              echo
+              echo "Packages listed above normally need a same-version Release bump and COPR rebuild after a Fedora ABI transition."
+            } >> "${GITHUB_STEP_SUMMARY}"
+
+            awk '/^package:/ { print $2 }' /tmp/repoclosure.log | sort -u | while read -r package_nevra; do
+              [ -n "${package_nevra}" ] && echo "::error title=Broken repository package::${package_nevra} has unresolved dependencies on Fedora ${{ matrix.fedora_version }}"
+            done
+          fi
+
+          exit "${status}"

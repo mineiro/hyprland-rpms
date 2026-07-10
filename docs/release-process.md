@@ -125,6 +125,22 @@ Recent example from the 2026-06-30 maintenance pass:
   `python(abi) = 3.14` after rawhide moved to Python 3.15, so it needed a
   same-version release rebuild.
 
+## Rawhide system-library ABI rebuild rule
+
+- The scheduled `Repoclosure` workflow detects COPR packages that still require
+  a retired Fedora library soname. This is an installability failure, not a CI
+  false positive; do not exclude the affected package from repoclosure.
+- Bump the package's `%autorelease` base (for example, from `%autorelease` to
+  `%autorelease -b 2`), validate it against rawhide, and rebuild it in COPR.
+  A plain rebuild with the old NEVRA is insufficient because DNF will not
+  replace the already-published RPM.
+- The workflow step summary identifies the affected binary package. Map it to
+  its source package with `dnf repoquery --qf '%{source_name}' <binary-name>`
+  when the names differ.
+- Keep the daily check. Rawhide ABI transitions are external to this repository,
+  so the source-diff ABI gate cannot predict them; repoclosure is the backstop
+  that detects them after Fedora repository metadata changes.
+
 ## Hyprland plugins compatibility gate
 
 - `hyprland-plugins` must follow upstream ABI-compatible release families.

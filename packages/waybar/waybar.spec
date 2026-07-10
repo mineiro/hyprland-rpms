@@ -1,6 +1,7 @@
 Name:           waybar
 Version:        0.15.0
-Release:        %autorelease
+# Rebuild for the spdlog soname transition in Fedora rawhide.
+Release:        %autorelease -b 2
 Summary:        Highly customizable Wayland bar for wlroots compositors and Hyprland
 
 # Source files/overall project licensed as MIT, but:
