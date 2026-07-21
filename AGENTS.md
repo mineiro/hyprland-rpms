@@ -67,6 +67,63 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-07-21):
+  - Package commit `a664dc5` (`Update Hyprland ecosystem packages`) is pushed
+    to `origin/main`.
+  - Upstream version updates published successfully in `mineiro/hyprland`:
+    - `hyprutils` `0.14.0` (COPR build `10756362`)
+    - `glaze` `7.9.1` (COPR build `10756363`)
+    - `libcava` `1.0.0` (COPR build `10756364`)
+    - `python-materialyoucolor` `3.0.3` (COPR build `10756365`)
+    - `aquamarine` `0.13.0` (COPR build `10756368`)
+    - `caelestia-cli` `1.1.1` (COPR build `10756370`)
+    - `hyprsunset` `0.4.0` (COPR build `10756375`)
+    - `xdg-desktop-portal-hyprland` `1.4.0` (COPR build `10756376`)
+    - `hyprlock` `0.9.6` (COPR build `10756379`)
+    - `hyprland` `0.56.0` (COPR build `10756380`)
+    - `hyprland-guiutils` `0.2.2` (COPR build `10756385`)
+    - `hyprland-plugins` `0.56.0` targeting the exact Hyprland `0.56.0`
+      ABI (COPR build `10756387`)
+  - ABI/header consumers were rebuilt and published successfully:
+    - `hyprlang` `10756366`, `hyprwire` `10756367`, `astal-cava`
+      `10756369`, `hyprpicker` `10756371`, `hyprpolkitagent` `10756372`
+    - `hyprgraphics` `10756373`, `hyprqt6engine` `10756374`, `hypridle`
+      `10756377`, `hyprtoolkit` `10756378`
+    - `hyprpaper` `10756381`, `hyprpwcenter` `10756382`, `hyprshutdown`
+      `10756383`, `hyprsysteminfo` `10756384`, `hyprlauncher` `10756386`
+  - COPR builds `10756362`..`10756387` all succeeded on Fedora 43, Fedora
+    44, and rawhide for both x86_64 and aarch64.
+  - Local validation before commit:
+    - full upstream version audit and
+      `./scripts/check-upstream-versions.sh --changed-only` passed
+    - fresh SRPM generation passed for all 26 changed/rebuilt packages
+    - `make check-upgrade UPGRADE_BASE_REF=origin/main` passed
+    - dependency-ordered x86_64 `mock --chain` passed for the complete set on
+      Fedora 43, Fedora 44, and rawhide against the `mineiro/hyprland` COPR
+      dependency repo
+  - Post-publish x86_64 `repoclosure` passed against the refreshed COPR repo
+    on Fedora 43, Fedora 44, and rawhide.
+  - Notable packaging adjustments:
+    - Consumers of the `hyprutils 0.14.0` header/API update and the
+      `aquamarine 0.13.0` / `libcava 1.0.0` ABI transitions received
+      same-version Release rebuilds where required.
+    - `python-materialyoucolor 3.0.3` now uses the upstream GitHub tag archive
+      because PyPI publishes wheels but no source distribution for that tag.
+    - Hyprland carries a small GCC 15 compatibility patch for
+      `std::ranges::starts_with`; it also declares the new `libeis`,
+      `readline`, `libinput >= 1.29`, and `wayland-protocols >= 1.49` build
+      requirements from upstream `0.56.0`.
+  - COPR publish order used five explicit batches:
+    - providers: builds `10756362`..`10756365`
+    - first consumers: builds `10756366`..`10756372`
+    - graphics/portal consumers: builds `10756373`..`10756377`
+    - toolkit, lock, and Hyprland: builds `10756378`..`10756380`
+    - toolkit consumers and exact Hyprland ABI plugins: builds
+      `10756381`..`10756387`
+  - Current plugin policy: `hyprland-plugins` is active for Hyprland `0.56.0`
+    using upstream tag `v0.56.0`; keep `%{hyprland_target_version}` exact and
+    bump the RPM `Release` for later compatible Hyprland patch releases unless
+    upstream publishes a newer matching plugin tag.
 - Latest maintenance handoff (2026-06-30):
   - Commit `27db241` (`Update Hyprland maintenance package set`) is pushed to
     `origin/main`.
@@ -96,8 +153,9 @@ Key files/directories:
     - provider batch: `aquamarine`, `glaze`
     - provider consumers after provider batch: `hyprtoolkit`, `hyprland`
     - exact Hyprland ABI consumer after `hyprland`: `hyprland-plugins`
-  - Current plugin policy: `hyprland-plugins` is active for the `0.55.x`
-    Hyprland family using upstream tag `v0.55.0`; for later Hyprland `0.55.x`
+  - Plugin policy at that maintenance point: `hyprland-plugins` was active for
+    the `0.55.x` Hyprland family using upstream tag `v0.55.0`; for later
+    Hyprland `0.55.x`
     patch releases, update `%{hyprland_target_version}` and bump RPM
     `Release`, but do not change the plugin source tag unless upstream publishes
     a newer compatible tag.
