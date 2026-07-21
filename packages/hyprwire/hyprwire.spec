@@ -1,6 +1,6 @@
 Name:           hyprwire
 Version:        0.3.1
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        Hyprland ecosystem Wayland protocol codegen and wire helpers
 
 License:        BSD-3-Clause
@@ -10,7 +10,7 @@ Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  ninja-build
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
 BuildRequires:  pkgconfig(libffi)
 BuildRequires:  pkgconfig(pugixml)
 

@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 
 Name:           glaze
-Version:        7.8.3
+Version:        7.9.1
 Release:        %autorelease
 Summary:        Header-only C++ JSON serialization and reflection library
 

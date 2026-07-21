@@ -5,7 +5,7 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.55.4
+Version:        0.56.0
 Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 
@@ -14,17 +14,18 @@ License:        BSD-3-Clause AND BSD-2-Clause AND HPND-sell-variant AND LGPL-2.1
 URL:            https://github.com/hyprwm/Hyprland
 Source0:        %{url}/releases/download/v%{version}/source-v%{version}.tar.gz
 Patch0:         patches/0001-cmake-allow-lua-5.4-on-fedora-43-44.patch
+Patch1:         patches/0002-gcc15-replace-ranges-starts-with.patch
 
 BuildRequires:  cmake
 # Encode the validated Hypr stack floors so COPR/builddep does not mix older
 # Fedora packages with newer COPR packages (for example hyprutils ABI drift).
-BuildRequires:  cmake(glaze) >= 7.2.2
+BuildRequires:  cmake(glaze) >= 7.9.1
 BuildRequires:  gcc-c++
 BuildRequires:  glslang-devel
 BuildRequires:  meson
 BuildRequires:  ninja-build
 BuildRequires:  python3
-BuildRequires:  pkgconfig(aquamarine) >= 0.11.0
+BuildRequires:  pkgconfig(aquamarine) >= 0.13.0
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(egl)
 BuildRequires:  pkgconfig(gbm)
@@ -34,13 +35,14 @@ BuildRequires:  pkgconfig(hwdata)
 BuildRequires:  pkgconfig(hyprcursor) >= 0.1.13
 BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.1
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(lcms2)
 BuildRequires:  pkgconfig(libdisplay-info)
 BuildRequires:  pkgconfig(libdrm)
-BuildRequires:  pkgconfig(libinput) >= 1.28
+BuildRequires:  pkgconfig(libeis-1.0)
+BuildRequires:  pkgconfig(libinput) >= 1.29
 BuildRequires:  pkgconfig(libliftoff)
 BuildRequires:  pkgconfig(libseat)
 BuildRequires:  pkgconfig(libudev)
@@ -49,12 +51,13 @@ BuildRequires:  pkgconfig(muparser)
 BuildRequires:  pkgconfig(pango)
 BuildRequires:  pkgconfig(pangocairo)
 BuildRequires:  pkgconfig(pixman-1)
+BuildRequires:  pkgconfig(readline)
 BuildRequires:  pkgconfig(re2)
 BuildRequires:  pkgconfig(systemd)
 BuildRequires:  pkgconfig(tomlplusplus)
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  pkgconfig(wayland-client)
-BuildRequires:  pkgconfig(wayland-protocols) >= 1.47
+BuildRequires:  pkgconfig(wayland-protocols) >= 1.49
 BuildRequires:  pkgconfig(wayland-scanner)
 BuildRequires:  pkgconfig(wayland-server) >= 1.22.91
 BuildRequires:  pkgconfig(xcb)

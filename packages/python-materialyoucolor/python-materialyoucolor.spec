@@ -2,13 +2,13 @@
 %global python3_sitearch %(%{__python3} -c "import sysconfig; print(sysconfig.get_path('platlib', vars={'base': '/usr', 'platbase': '/usr'}))")
 
 Name:           python-materialyoucolor
-Version:        3.0.2
-Release:        %autorelease -b 2
+Version:        3.0.3
+Release:        %autorelease
 Summary:        Material You color generation algorithms for Python
 
 License:        MIT
 URL:            https://github.com/T-Dynamos/materialyoucolor-python
-Source0:        https://files.pythonhosted.org/packages/source/m/%{srcname}/%{srcname}-%{version}.tar.gz
+Source0:        %{url}/archive/refs/tags/v%{version}/%{name}-%{version}.tar.gz
 
 BuildRequires:  gcc-c++
 BuildRequires:  python3-devel
@@ -29,7 +29,7 @@ Material You color generation algorithms for Python. This package provides the
 `materialyoucolor` module and its optional native quantization backend.
 
 %prep
-%autosetup -n %{srcname}-%{version}
+%autosetup -n materialyoucolor-python-%{version}
 
 %build
 %{__python3} setup.py build

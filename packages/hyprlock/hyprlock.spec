@@ -10,8 +10,8 @@
 %global sdbus_version 2.1.0
 
 Name:           hyprlock
-Version:        0.9.5
-Release:        %autorelease -b 4
+Version:        0.9.6
+Release:        %autorelease
 Summary:        Hyprland's GPU-accelerated screen locking utility
 
 License:        BSD-3-Clause
@@ -30,7 +30,7 @@ BuildRequires:  pkgconfig(egl)
 BuildRequires:  pkgconfig(gbm)
 BuildRequires:  pkgconfig(hyprgraphics) >= 0.4.0
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libsystemd)
 BuildRequires:  pkgconfig(opengl)

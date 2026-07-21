@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Hyprland RPM maintainers <jnetto@mineiro.io>
+Date: Tue, 21 Jul 2026 00:00:00 +0000
+Subject: [PATCH] helpers: avoid ranges::starts_with on GCC 15
+
+Fedora 43 and Fedora 44 use a GCC 15 libstdc++ that does not yet provide
+std::ranges::starts_with. Express the same prefix test with C++20 range
+algorithms so Hyprland 0.56 remains buildable on the supported Fedora targets.
+---
+ src/helpers/MiscFunctions.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/helpers/MiscFunctions.cpp b/src/helpers/MiscFunctions.cpp
+index 998cb74..8eb01ee 100644
+--- a/src/helpers/MiscFunctions.cpp
++++ b/src/helpers/MiscFunctions.cpp
+@@ -838,7 +838,7 @@ bool truthy(const std::string& str) {
+     });
+ 
+     return [&](auto&&... prefixes) -> bool {
+-        return (... || std::ranges::starts_with(str_view, prefixes));
++        return (... || std::ranges::equal(prefixes, str_view | std::views::take(prefixes.size())));
+     }("true"sv, "yes"sv, "on"sv);
+     // clang-format on
+ }
+-- 
+2.50.0

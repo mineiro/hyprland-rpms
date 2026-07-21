@@ -1,6 +1,6 @@
 Name:           hyprpolkitagent
 Version:        0.1.3
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        Simple polkit authentication agent for Hyprland
 
 License:        BSD-3-Clause
@@ -16,7 +16,7 @@ BuildRequires:  systemd-rpm-macros
 BuildRequires:  cmake(Qt6Quick)
 BuildRequires:  cmake(Qt6QuickControls2)
 BuildRequires:  cmake(Qt6Widgets)
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
 BuildRequires:  pkgconfig(polkit-agent-1)
 BuildRequires:  pkgconfig(polkit-qt6-1)
 

@@ -4,7 +4,7 @@
 
 Name:           astal-cava
 Version:        0.1.0
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        CAVA integration library for Astal
 
 License:        LGPL-2.1-only
@@ -17,7 +17,7 @@ BuildRequires:  vala
 BuildRequires:  gobject-introspection-devel
 BuildRequires:  pkgconfig(gio-2.0)
 BuildRequires:  pkgconfig(gobject-2.0)
-BuildRequires:  pkgconfig(libcava) >= 0.10.7
+BuildRequires:  pkgconfig(libcava) >= 1.0.0
 
 %package        devel
 Summary:        Development files for %{name}

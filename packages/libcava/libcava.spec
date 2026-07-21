@@ -1,8 +1,8 @@
-%global upstream_commit f4b69943ea7fecbbeec97fac8e73af03b39be499
+%global upstream_commit f03278ef9e5e7948fb206453d2f02758f8db216c
 %global upstream_shortcommit %(c=%{upstream_commit}; echo ${c:0:7})
 
 Name:           libcava
-Version:        0.10.7
+Version:        1.0.0
 Release:        %autorelease
 Summary:        Shared audio visualization library from CAVA
 
@@ -56,7 +56,7 @@ ln -sfn ../output %{_vpath_builddir}/output
 
 %files
 %license LICENSE
-%{_libdir}/libcava.so.0{,.*}
+%{_libdir}/libcava.so.1{,.*}
 
 %files devel
 %{_includedir}/cava/

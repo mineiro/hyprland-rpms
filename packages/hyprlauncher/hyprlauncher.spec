@@ -1,6 +1,6 @@
 Name:           hyprlauncher
 Version:        0.1.6
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        Multipurpose launcher and picker for Hyprland
 
 License:        BSD-3-Clause
@@ -15,7 +15,7 @@ BuildRequires:  ninja-build
 BuildRequires:  pkgconfig(fontconfig)
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
 BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
-BuildRequires:  pkgconfig(hyprutils) >= 0.13.1
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
 BuildRequires:  pkgconfig(hyprwire)
 BuildRequires:  pkgconfig(icu-uc)
 BuildRequires:  pkgconfig(libdrm)
