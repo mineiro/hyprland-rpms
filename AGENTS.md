@@ -67,7 +67,62 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
-- Latest maintenance handoff (2026-07-24):
+- Latest maintenance handoff (2026-07-24, snapshot refresh):
+  - Package commit `7951f21` (`Refresh Astal and Material Symbols snapshots,
+    fix stale plugin docs`) is pushed to `origin/main`.
+  - The whole Astal stack moved from snapshot `20260519` (`f58cae8`) to
+    `20260724` (`9dac92f`, upstream `Aylur/astal` `main`). Upstream `Version`
+    values are unchanged, so every package took a `Release` base bump
+    (`-b 2` -> `-b 3`, `astal-cava` `-b 3` -> `-b 4`, `astal-quarrel`
+    `%autorelease` -> `-b 2`) per the same-version rebuild rule.
+  - Upstream build-dependency changes in this snapshot range (15 commits):
+    - `astal-mpris` moved the library from `json-glib` to `libsoup-3.0` plus
+      `gdk-pixbuf-2.0` for cover-art handling, and links its CLI against
+      `quarrel-0.1` and `json-glib`; the spec gained all four
+      `BuildRequires`.
+    - `astal-greet` links its CLI against `quarrel-0.1` (new `BuildRequires`)
+      and reorganized its sources into `greeter.vala` / `login.vala` /
+      `model.vala`.
+    - `astal-cava` upstream raised its `libcava` floor to `>= 1.0.0`, which
+      the spec already declared after the `libcava 1.0.0` transition.
+    - `astal-quarrel` is now a build-time dependency of three sibling
+      packages, so it must be published before `astal-greet`, `astal-mpris`,
+      and `astal-notifd` in any COPR batch.
+  - `material-symbols-fonts` refreshed to `0^git20260724` (`528cb96`).
+  - COPR builds published successfully in `mineiro/hyprland`, all on Fedora
+    43/44/rawhide for both x86_64 and aarch64:
+    - batch 1 (no in-repo Astal build deps): `astal-io` `10771858`,
+      `astal-quarrel` `10771859`, `astal-wl` `10771860`, `astal-apps`
+      `10771861`, `astal-auth` `10771862`, `astal-battery` `10771863`,
+      `astal-bluetooth` `10771864`, `astal-cava` `10771865`,
+      `astal-hyprland` `10771866`, `astal-network` `10771867`,
+      `astal-power-profiles` `10771868`, `astal-tray` `10771869`,
+      `astal-wireplumber` `10771870`, `material-symbols-fonts` `10771871`
+    - batch 2 (consumers of `astal-io` / `astal-quarrel` / `astal-wl`):
+      `astal3` `10771875`, `astal4` `10771876`, `astal-greet` `10771877`,
+      `astal-mpris` `10771878`, `astal-notifd` `10771879`, `astal-river`
+      `10771880`
+  - Local validation before commit:
+    - fresh SRPM generation passed for all 20 changed packages
+    - `make check-upgrade UPGRADE_BASE_REF=origin/main` passed
+    - dependency-ordered Fedora 43/44/rawhide x86_64 `mock --chain` passed
+      60/60 against the `mineiro/hyprland` COPR dependency repo
+  - Post-publish x86_64 `repoclosure` passed on Fedora 43, Fedora 44, and
+    rawhide.
+  - `aylurs-gtk-shell` was not rebuilt: it depends on `astal3`/`astal4` by
+    unversioned runtime `Requires`, the Astal sonames did not move, and the
+    changed libraries (`mpris`, `greet`, `cava`) are not linked by AGS itself.
+  - Doc drift fixed in the same commit: `README.md`,
+    `docs/release-process.md`, and `docs/packaging-policy.md` still described
+    the Hyprland `0.55.4` / `v0.55.0` plugin family; the active stack has been
+    `0.56.0` / `v0.56.0` since the 2026-07-21 rollout. `AGENTS.md` notes
+    claiming `awww` is snapshot-pinned were also corrected; it tracks stable
+    tags again (`0.12.1`).
+  - Remaining deliberate pins after this pass: none in the Astal stack. The
+    only `manual`-tracked entries left are snapshot-by-design
+    (`material-symbols-fonts`, now current) and the Astal `Version` values
+    themselves, which upstream does not tag.
+- Earlier maintenance handoff (2026-07-24, upstream drift):
   - Package commit `35c5ca1` (`Update caelestia-cli and dart-sass to latest
     upstream`) is pushed to `origin/main`.
   - Upstream version updates published successfully in `mineiro/hyprland`:
