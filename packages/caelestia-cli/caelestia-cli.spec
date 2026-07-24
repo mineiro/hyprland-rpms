@@ -1,5 +1,5 @@
 Name:           caelestia-cli
-Version:        1.1.1
+Version:        1.1.2
 Release:        %autorelease
 Summary:        Command-line companion for the Caelestia shell and dotfiles
 
