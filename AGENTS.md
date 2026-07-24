@@ -67,6 +67,39 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-07-24):
+  - Package commit `35c5ca1` (`Update caelestia-cli and dart-sass to latest
+    upstream`) is pushed to `origin/main`.
+  - Upstream version updates published successfully in `mineiro/hyprland`:
+    - `dart-sass` `1.101.7` (COPR build `10771793`)
+    - `caelestia-cli` `1.1.2` (COPR build `10771794`)
+  - Both COPR builds succeeded on Fedora 43, Fedora 44, and rawhide for both
+    x86_64 and aarch64.
+  - This was a small drift-only pass: a full
+    `./scripts/check-upstream-versions.sh` audit found no other package behind
+    upstream, and no ABI provider moved, so no same-version consumer rebuilds
+    were required.
+  - Both bumps are plain upstream version changes with no dependency, source
+    layout, or patch changes:
+    - `caelestia-cli 1.1.2` is two upstream bug fixes (region regex for
+      negative coordinates, `version` command dotfiles detection).
+    - `dart-sass 1.101.7` reports no user-visible changes and keeps the same
+      `linux-x64` / `linux-arm64` release asset naming.
+  - Local validation before commit:
+    - fresh SRPM generation passed for both packages
+    - `make check-upgrade UPGRADE_BASE_REF=origin/main` passed
+    - Fedora 43/44/rawhide x86_64 `mock --chain` passed for
+      `dart-sass caelestia-cli` against the `mineiro/hyprland` COPR dependency
+      repo
+  - Post-publish x86_64 `repoclosure` passed against the refreshed COPR repo on
+    Fedora 43, Fedora 44, and rawhide.
+  - Both packages are independent leaves (`caelestia-cli` only needs the
+    already-published `python-materialyoucolor 3.0.3`), so they were triggered
+    together without `--after-build-id` ordering.
+  - Snapshot/`manual`-tracked packages were intentionally left untouched this
+    pass: the Astal stack (`snapshot_date 20260319`), `material-symbols-fonts`
+    (`0^git20260515`), and `awww` are pinned deliberately and are not part of
+    routine upstream drift checks.
 - Latest maintenance handoff (2026-07-21):
   - Package commit `a664dc5` (`Update Hyprland ecosystem packages`) is pushed
     to `origin/main`.
@@ -241,17 +274,17 @@ Important:
 - `packages/material-symbols-fonts/` has been added as a new Google icon-font package at upstream snapshot `20260327` (`Version: 0^git20260327`) from the actively updated `google/material-design-icons` `master` branch; local SRPM generation and clean Fedora 43/44/rawhide x86_64 `mock --rebuild` pass, it uses Fedora font packaging macros (`%fontpkg`) instead of manual font staging, repacks a minimal local `Source0` from the upstream raw files so the SRPM stays small, and it intentionally packages the current `Material Symbols` variable TTF set rather than trying to fake-update the legacy frozen `material-icons-fonts` `4.0.0` line.
 - Repo-wide `rpmlint` filtering now suppresses the known false-positive `invalid-url Source1` warning for locally generated vendored `*-vendor.tar.gz` / `*.tar.xz` archives, so `make check-specs` only reports remaining actionable warnings.
 - `packages/python-materialyoucolor/` has been added at the latest upstream release (`3.0.2`, `T-Dynamos/materialyoucolor-python`), locally validated via SRPM + clean `mock --rebuild` on Fedora 43/44/rawhide x86_64 plus installed-package smoke tests, and onboarded to COPR (`mineiro/hyprland`) with successful first manual build `10205354` across Fedora 43/44/rawhide x86_64. It packages the upstream pybind11-backed quantization extension so the native Material You quantizer remains available.
-- `packages/caelestia-cli/` has been updated to upstream release `1.1.0`
+- `packages/caelestia-cli/` has been updated to upstream release `1.1.2`
   (`caelestia-dots/cli`), locally validated via SRPM + Fedora 43/44/rawhide
   x86_64 `mock --chain` with `python-materialyoucolor` available from the
-  `mineiro/hyprland` COPR repo, and COPR build `10662394` passed in
+  `mineiro/hyprland` COPR repo, and COPR build `10771794` passed in
   `mineiro/hyprland`. It is a noarch Python CLI package that installs the
   `caelestia` command, fish completion, and Fedora/COPR runtime recommendations
   for the broader Caelestia stack.
-- `packages/dart-sass/` has been updated to upstream release `1.101.0`
+- `packages/dart-sass/` has been updated to upstream release `1.101.7`
   (`sass/dart-sass`). It packages the official standalone Linux x64/aarch64
   releases, provides `/usr/bin/sass`, intentionally `Conflicts: rubygem-sass`,
-  and COPR build `10662395` passed in `mineiro/hyprland`.
+  and COPR build `10771793` passed in `mineiro/hyprland`.
 - On `2026-03-21`, the AGS/Astal stack was imported from the working `~/Code/ags-rpms` repo into this monorepo so users can install it from the same COPR as the Hyprland packages. New package directories now exist for `gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`, and `aylurs-gtk-shell`; `make check-specs` passes, local SRPM generation passes, and `mock --chain` passes on Fedora 43/44/rawhide x86_64 for the full stack. The Astal libraries were then bumped the same day to the newer upstream `Aylur/astal` snapshot commit `41b5029` (`snapshot_date 20260319`, upstream `main` as of `2026-03-19`), and the same Fedora 43/44/rawhide x86_64 chain remains green. `aylurs-gtk-shell` keeps a small downstream patch set for packaged `gnim`, safer GIR defaults, Fedora `npx`, and `gtk4-layer-shell` soname handling.
 - Later on `2026-03-21`, `astal-mpris`, `astal-network`, and `astal-wireplumber` were added as split optional Astal integrations instead of a bundled `astal-libs` package. Local SRPM generation plus standalone Fedora 43/44/rawhide x86_64 `mock --rebuild` all pass for the three new packages. The same day, the shared Go vendoring path in `.copr/Makefile` was aligned with `scripts/prepare-go-vendor.sh`, which fixed the `aylurs-gtk-shell` COPR source-generation mismatch and led to successful retry build `10249186`.
 - Later on `2026-03-21`, `astal-apps`, `astal-auth`, `astal-battery`, `astal-bluetooth`, `astal-greet`, `astal-notifd`, and `astal-power-profiles` were added as more split optional Astal integrations. `make check-specs` plus local SRPM generation and standalone Fedora 43/44/rawhide x86_64 `mock --rebuild` all pass for the whole batch.
