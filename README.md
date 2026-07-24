@@ -51,13 +51,13 @@ install AGS-related packages.
 ## Plugin policy (current)
 
 - `hyprland-plugins` is ABI-coupled to Hyprland.
-- The active stack ships Hyprland `0.55.4` with the compatible
-  `hyprland-plugins` upstream `v0.55.0` family.
-- For Hyprland `0.55.x` patch releases, keep the plugin source tag at
-  `v0.55.0` unless upstream publishes a newer compatible plugin tag, and bump
+- The active stack ships Hyprland `0.56.0` with the compatible
+  `hyprland-plugins` upstream `v0.56.0` family.
+- For Hyprland `0.56.x` patch releases, keep the plugin source tag at
+  `v0.56.0` unless upstream publishes a newer compatible plugin tag, and bump
   the RPM release plus `%{hyprland_target_version}` for the exact rebuild.
 - Legacy `0.53.x` plugin RPMs are transition-cleaned by `hyprland` package
-  obsoletes so users can upgrade to `hyprland 0.55.x` without dependency
+  obsoletes so users can upgrade to `hyprland 0.56.x` without dependency
   deadlocks.
 
 ## Quick start

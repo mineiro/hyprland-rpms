@@ -146,11 +146,11 @@ Recent example from the 2026-06-30 maintenance pass:
 - `hyprland-plugins` must follow upstream ABI-compatible release families.
 - Do not bump `hyprland-plugins` for a new Hyprland family unless upstream
   publishes a compatible release/tag for that family.
-- Current status: Hyprland `0.55.4` is published with the compatible
-  `hyprland-plugins` `v0.55.0` family.
-- It is valid for the plugin source tag to remain at `v0.55.0` while the RPM
+- Current status: Hyprland `0.56.0` is published with the compatible
+  `hyprland-plugins` `v0.56.0` family.
+- It is valid for the plugin source tag to remain at `v0.56.0` while the RPM
   release and `%{hyprland_target_version}` track later compatible Hyprland
-  `0.55.x` patch releases.
+  `0.56.x` patch releases.
 - Keep transitional `Obsoletes` in `hyprland` for legacy `0.53.x` plugin RPMs
   until the upgrade path has been exercised across supported Fedora releases.
 - Repoclosure and smoke gates should include `hyprland-plugins` whenever the
