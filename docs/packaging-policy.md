@@ -113,6 +113,37 @@ Suggested AGS / Astal package order:
 23. `astal-river`
 24. `astal-cava`
 
+## Font packaging specifics
+
+- Use the Fedora font macros (`%fontpkg`, `%fontbuild`, `%fontinstall`,
+  `%fontcheck`, `%fontfiles`) rather than staging font files by hand. Let the
+  macros generate `Name:`, the per-family subpackages and the appstream
+  metainfo.
+- One subpackage per upstream *font family*. Two builds that share a family name
+  (a variable and a static cut of the same font, or TTF and OTF encodings) are
+  alternate encodings of one family, not two packages — pick one, otherwise
+  fontconfig ends up with duplicate families.
+- Do not reference `%{name}` above `%fontpkg`. The macros only emit `Name:` at
+  that point, so `%{name}` is unset earlier in the file. A standalone
+  `rpmspec -P` hides this because rpm expands source lines late, but
+  `scripts/check-specs.sh` passes every spec to one `rpmlint` invocation sharing
+  a single rpm macro context, where an earlier spec's `Name:` leaks in.
+- Check the generated package names before trusting them. `%fontpkgname<N>`
+  derives from the family name using the "WPF font selection model"
+  simplifications, which strip trailing weight, width, slant and `normal`
+  tokens; families that differ only by such a token collapse onto the same RPM
+  name and need an explicit `%global fontpkgname<N>` override. `Maple Mono
+  Normal` versus `Maple Mono` is the worked example in the repo.
+- Split source packages along whichever axis drives download size, not along
+  every axis upstream offers. The Maple Mono set keeps its four feature cuts as
+  subpackages of one spec but splits the glyph-set axis across four source
+  packages, so rebuilding the 4 MB cuts does not drag the 140 MB CJK assets
+  along.
+- Prefer release assets over repacked tarballs when upstream publishes usable
+  ones. If the asset filename has no version in it, append a `#/` fragment to
+  the `Source` URL so the locally cached copy is versioned; `spectool` skips
+  files that already exist, so an unversioned name silently survives a bump.
+
 ## What to avoid (fresh-start guardrails)
 
 - Large top-level flat directories for dozens of unrelated packages

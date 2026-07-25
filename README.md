@@ -37,8 +37,11 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 
 Recent package additions include Caelestia support components
 (`python-materialyoucolor`, `caelestia-cli`), utility packages such as
-`dart-sass`, and newer Wayland desktop tools including `swayosd`,
-`departure`, `satty`, and `material-symbols-fonts`. The repo now also carries the AGS/Astal userspace stack
+`dart-sass`, newer Wayland desktop tools including `swayosd`,
+`departure`, and `satty`, and desktop fonts (`material-symbols-fonts`, plus the
+complete Maple Mono set split across `maple-mono-fonts`, `maple-mono-nf-fonts`,
+`maple-mono-cn-fonts`, and `maple-mono-nf-cn-fonts`).
+The repo now also carries the AGS/Astal userspace stack
 (`gnim`, `astal-io`, `astal3`, `astal4`, `astal-hyprland`,
 `astal-apps`, `astal-auth`, `astal-battery`, `astal-bluetooth`,
 `astal-cava`, `astal-greet`, `astal-mpris`, `astal-network`,

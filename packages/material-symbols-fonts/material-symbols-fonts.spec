@@ -23,7 +23,12 @@ and Sharp families.}
 
 # prepare-sources.sh repacks the active Material Symbols assets into a small
 # source tarball so builds do not need the full upstream web asset tree.
-Source0:        %{name}-%{snapshot_date}.tar.xz
+#
+# The name is spelled out instead of using %%{name}: the fonts macros only
+# generate "Name:" further down in %%fontpkg, so %%{name} is still unset here and
+# resolves to whatever a previously parsed spec left behind when a tool such as
+# rpmlint parses every spec in one rpm macro context.
+Source0:        material-symbols-fonts-%{snapshot_date}.tar.xz
 
 %fontpkg
 
