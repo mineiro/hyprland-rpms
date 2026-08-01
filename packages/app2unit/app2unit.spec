@@ -1,5 +1,5 @@
 Name:           app2unit
-Version:        1.4.2
+Version:        1.4.3
 Release:        %autorelease
 Summary:        Launch desktop entries and commands as user services or scopes
 

@@ -146,8 +146,8 @@ Recent example from the 2026-06-30 maintenance pass:
 - `hyprland-plugins` must follow upstream ABI-compatible release families.
 - Do not bump `hyprland-plugins` for a new Hyprland family unless upstream
   publishes a compatible release/tag for that family.
-- Current status: Hyprland `0.56.0` is published with the compatible
-  `hyprland-plugins` `v0.56.0` family.
+- Current packaging target pairs Hyprland `0.56.1` with the compatible
+  `hyprland-plugins` `v0.56.0` source family.
 - It is valid for the plugin source tag to remain at `v0.56.0` while the RPM
   release and `%{hyprland_target_version}` track later compatible Hyprland
   `0.56.x` patch releases.

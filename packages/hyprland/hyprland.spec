@@ -5,7 +5,7 @@
 # This file is intentionally a clean starting point, not a drop-in final spec.
 
 Name:           hyprland
-Version:        0.56.0
+Version:        0.56.1
 Release:        %autorelease
 Summary:        Dynamic tiling Wayland compositor
 
@@ -25,7 +25,7 @@ BuildRequires:  glslang-devel
 BuildRequires:  meson
 BuildRequires:  ninja-build
 BuildRequires:  python3
-BuildRequires:  pkgconfig(aquamarine) >= 0.13.0
+BuildRequires:  pkgconfig(aquamarine) >= 0.14.0
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(egl)
 BuildRequires:  pkgconfig(gbm)
@@ -87,7 +87,8 @@ Recommends:     mesa-dri-drivers
 Recommends:     polkit
 # Transitional cleanup for the 0.55 upgrade path: remove plugin RPMs that are
 # version-locked to Hyprland 0.53.3 and would otherwise deadlock dnf upgrades.
-# Drop these once a 0.55-compatible plugin RPM family is published.
+# Keep these until the legacy upgrade path has been exercised across all
+# supported Fedora releases, as documented in the release process.
 Obsoletes:      hyprland-plugins < 0.55~
 Obsoletes:      hyprland-plugin-borders-plus-plus < 0.55~
 Obsoletes:      hyprland-plugin-csgo-vulkan-fix < 0.55~

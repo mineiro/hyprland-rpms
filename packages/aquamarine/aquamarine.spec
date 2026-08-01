@@ -1,5 +1,5 @@
 Name:           aquamarine
-Version:        0.13.0
+Version:        0.14.0
 Release:        %autorelease
 Summary:        Lightweight Linux rendering backend library for the Hypr ecosystem
 

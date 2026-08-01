@@ -1,10 +1,10 @@
 # Official plugin bundle for Hyprland. Plugin binaries are ABI-coupled to the
 # exact Hyprland release family they are built against.
 #
-# This repo currently ships Hyprland 0.56.0 together with the matching upstream
-# plugin tag. Keep the source and exact runtime ABI lock synchronized.
+# This repo currently ships Hyprland 0.56.1 with the compatible upstream
+# v0.56.0 plugin source. Keep the exact runtime ABI lock synchronized.
 
-%global hyprland_target_version 0.56.0
+%global hyprland_target_version 0.56.1
 %global __provides_exclude_from ^(%{_libdir}/hyprland/.*\\.so)$
 
 %global plugins %{shrink:
@@ -24,7 +24,7 @@
 
 Name:           hyprland-plugins
 Version:        0.56.0
-Release:        %autorelease
+Release:        %autorelease -b 2
 Summary:        Official plugins for Hyprland
 
 License:        BSD-3-Clause
