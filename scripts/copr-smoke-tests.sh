@@ -164,7 +164,14 @@ run_inside_container() {
   log "Configuring COPR repo ${owner}/${project}"
   write_copr_repo_file "${owner}" "${project}"
 
-  # Install the full set of packages currently published from this repo.
+  # Container tags can lag behind their enabled Fedora repositories.  Bring
+  # the installed base packages forward before adding the desktop stack so a
+  # newly published library is not paired with an older base-image runtime.
+  log "Refreshing installed Fedora base packages"
+  dnf_cmd -y --refresh --disablerepo="${repo_id}" \
+    --setopt=install_weak_deps=0 upgrade
+
+  # Install the desktop-stack package set covered by this smoke harness.
   # Fail fast if any package is missing from COPR so Fedora packages do not
   # silently mask unpublished or arch-specific gaps in the repo content.
   repo_packages=(

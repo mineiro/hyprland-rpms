@@ -67,6 +67,51 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-08-01):
+  - Package commit `03f8fb7` (`Update Hyprland maintenance package set`) is
+    pushed to `origin/main`.
+  - Upstream version updates published successfully in `mineiro/hyprland`:
+    - `app2unit` `1.4.3` (COPR build `10802447`)
+    - `aquamarine` `0.14.0` (COPR build `10802446`)
+    - `dart-sass` `1.102.0` (COPR build `10802448`)
+    - `hypridle` `0.1.8` (COPR build `10802449`)
+    - `hyprland` `0.56.1` (COPR build `10802453`)
+    - `xdg-desktop-portal-hyprland` `1.4.1` (COPR build `10802450`)
+  - `material-symbols-fonts` refreshed to snapshot `20260731` (`50f0603`,
+    COPR build `10802451`). The Astal stack remains current at snapshot
+    `20260724` (`9dac92f`); there were no later upstream commits.
+  - `aquamarine 0.14.0` is an ABI transition from `libaquamarine.so.12` to
+    `.so.13`. Its direct in-repo consumers were handled explicitly:
+    - `hyprtoolkit 0.5.4-6` is a same-version rebuild with its Aquamarine
+      dependency floor raised to `0.14.0` (COPR build `10802452`).
+    - `hyprland 0.56.1` raises its Aquamarine build dependency floor to
+      `0.14.0`; its upstream update supplies the consumer rebuild.
+  - `hyprland-plugins` keeps upstream source tag `v0.56.0`, moves its exact
+    packaged Hyprland target to `0.56.1`, and takes RPM release `2` (COPR
+    build `10802454`). Published metadata verifies every plugin subpackage
+    requires `hyprland = 0.56.1`.
+  - All nine COPR builds succeeded on Fedora 43, Fedora 44, and rawhide for
+    both x86_64 and aarch64. Publish order used three batches:
+    - provider and independent packages: builds `10802446`..`10802451`
+    - Aquamarine consumers: `hyprtoolkit` `10802452` and `hyprland`
+      `10802453`
+    - exact Hyprland ABI plugins: `hyprland-plugins` `10802454`
+  - Local validation before the package commit:
+    - full and changed-only upstream audits passed
+    - fresh SRPM generation passed for all nine changed/rebuilt packages
+    - `make check-upgrade UPGRADE_BASE_REF=origin/main` passed
+    - dependency-ordered Fedora 43/44/rawhide x86_64 `mock --chain` passed
+      27/27 against the `mineiro/hyprland` COPR dependency repo
+  - Post-publish x86_64 `repoclosure` and desktop-stack container
+    install/file/CLI smoke tests passed on Fedora 43, Fedora 44, and rawhide.
+    Published RPM metadata confirms Aquamarine provides `.so.13`, Hyprland
+    and Hyprtoolkit require it, and the plugin lock targets Hyprland `0.56.1`
+    exactly.
+  - Smoke testing exposed a stale Fedora 44 container base: current GTK used
+    a GLib symbol absent from the installed base-image GLib. The COPR RPMs
+    had already installed and passed provenance checks. The smoke harness now
+    refreshes installed Fedora base packages with the COPR repo disabled
+    before installing the desktop stack; the corrected matrix passes 3/3.
 - Latest maintenance handoff (2026-07-24, snapshot refresh):
   - Package commit `7951f21` (`Refresh Astal and Material Symbols snapshots,
     fix stale plugin docs`) is pushed to `origin/main`.
@@ -458,9 +503,12 @@ Additional runtime/support package now included in COPR:
 
 This order is documented in `docs/packaging-policy.md`.
 
-## Package matrix (tracking)
+## Package matrix (historical tracker)
 
-Use this table as the single place to track packaging/build progress across Fedora releases.
+This table preserves the original per-package onboarding and validation notes,
+but its versions and COPR-entry fields are not maintained as a current status
+surface. Use the dated maintenance handoffs above, the package specs, and the
+live `mineiro/hyprland` project for current versions and publication status.
 
 Status legend:
 
@@ -479,11 +527,8 @@ Build result legend (per Fedora columns):
 - `fail` = failing
 - `n/a` = not targeted
 
-Note:
-
-- `COPR builds` currently reflects the latest published x86_64 status for most packages.
-- The aarch64 rollout chain `10181665`..`10181694` completed for the active `0.54.x` package set.
-- `hyprland-plugins` remains a legacy `0.53.3` compatibility package and is intentionally excluded from aarch64 rollout builds.
+Note: each row reflects the package's status when that row was last updated;
+later dated handoffs supersede it.
 
 | Package                       | Role                               | Priority | Spec status | F43 mock | F44 mock | Rawhide mock | COPR pkg entry | COPR builds | Notes                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ----------------------------- | ---------------------------------- | -------: | ----------- | -------- | -------- | ------------ | -------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -555,13 +600,6 @@ Note:
 | `maple-mono-cn-fonts`         | Maple Mono + Chinese coverage      |       66 | `MRH`       | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | same upstream release; Chinese glyph coverage at twice the Latin advance width (no hangul, see package README), 4 subpackages (`Maple Mono CN`, `Maple Mono NL CN`, `Maple Mono Normal CN`, `Maple Mono Normal NL CN`); ~537 MB sources, 1.13 GB installed — check COPR storage before enabling |
 | `maple-mono-nf-cn-fonts`      | Maple Mono + Nerd Fonts + Chinese  |       67 | `MRH`       | `ok`     | `ok`     | `ok`         | `yes`          | `ok`        | same upstream release; combined Nerd Fonts icons and Chinese coverage, 4 subpackages (`Maple Mono NF CN`, `Maple Mono NL NF CN`, `Maple Mono Normal NF CN`, `Maple Mono Normal NL NF CN`); ~608 MB sources, 1.25 GB installed — the largest package in the repo, check COPR storage before enabling |
 
-Recommended usage:
-
-1. Update `Spec status` whenever a package moves stages (`NS` -> `SC` -> `WIP` -> `SRPM` ...)
-2. Record `F43/F44/Rawhide mock` results immediately after each `mock --rebuild`
-3. Flip `COPR pkg entry` to `yes` only after the SCM package entry is created
-4. Mark `COPR builds` as `ok/fail` per latest build result and keep failure reasons in `Notes`
-
 ## Validation strategy (updated)
 
 Use a staged validation approach instead of a single "smoke test":
@@ -577,21 +615,27 @@ Use a staged validation approach instead of a single "smoke test":
    - Current default path uses `gdm` auto-login into the default Hyprland session (`hyprland.desktop`) to exercise a distro-like user experience; tty-based graphical smoke remains available as a fallback/debug path.
    - Treat this as a separate stage from packaging/install smoke tests.
 
-## Suggested next steps (carry-over)
+## Suggested next steps
 
-1. Run post-publish `repoclosure` and container smoke checks against the
-   `mineiro/hyprland` COPR after the 2026-06-30 maintenance publish if that has
-   not already been done in a follow-up session.
-2. Keep the CI container smoke workflow green and tune assertions conservatively when package outputs evolve.
-3. Continue hardening the local KVM graphical smoke stage (service diagnostics, optional acceleration controls, clearer failure artifacts) while keeping it reliable on non-virgl hosts.
-4. Verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64 and aarch64 after larger ABI or architecture rollouts.
-5. Review bundling/unbundling options for `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and document any policy changes in spec comments/docs.
-6. Re-run `repoclosure` and clean standalone `mock --rebuild` for the latest `hyprpaper` (`0.8.3`) after batching a few more ecosystem packages (if desired).
-7. Decide whether/when to broaden user-facing install recommendations from `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
-8. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream version bump automation only after the manual workflow (including smoke tests) is stable.
-9. Onboard `hyprls` and `tree-sitter-hyprlang` to COPR (`mineiro/hyprland`) and re-run `repoclosure` after publish.
-10. Decide whether any user-facing meta package or install recommendations should pull in the new optional Astal libraries for a smoother desktop-shell experience.
-11. Package `@ts-for-gir/cli` (or split an AGS type-generation helper package) so `ags init` / `ags types` no longer depend on runtime `npx` network fetches.
+1. Keep the CI container smoke workflow green and tune assertions
+   conservatively when package outputs evolve.
+2. Continue hardening the local KVM graphical smoke stage (service
+   diagnostics, optional acceleration controls, clearer failure artifacts)
+   while keeping it reliable on non-virgl hosts.
+3. Verify the repo closes cleanly across Fedora 43/44/rawhide for both x86_64
+   and aarch64 after larger ABI or architecture rollouts.
+4. Review bundling/unbundling options for
+   `xdg-desktop-portal-hyprland`, `hyprlock`, and `hypridle` (`sdbus-cpp`) and
+   document any policy changes in spec comments/docs.
+5. Decide whether/when to broaden user-facing install recommendations from
+   `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
+6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream
+   version bump automation only after the manual workflow remains stable.
+7. Onboard `hyprls` and `tree-sitter-hyprlang` to COPR
+   (`mineiro/hyprland`) and re-run `repoclosure` after publication.
+8. Package `@ts-for-gir/cli` (or split an AGS type-generation helper package)
+   so `ags init` / `ags types` no longer depend on runtime `npx` network
+   fetches.
 
 ## Working conventions for future edits
 
@@ -675,11 +719,8 @@ When resuming, start by reading:
 
 Primary near-term task:
 
-- Run the post-COPR-publish repo checks for the latest maintenance batch if
-  they are still pending (`repoclosure`, `./scripts/copr-smoke-tests.sh mineiro
-  hyprland`, then KVM smoke as needed). After that, continue hardening the local
-  libvirt/KVM graphical smoke stage and pick up the remaining ecosystem
-  onboarding work (`hyprls`, `tree-sitter-hyprlang`, `satty`,
-  `material-symbols-fonts`, and the optional Astal integrations still marked
-  `COPR pkg entry: no` in the matrix). The four `maple-mono-*-fonts` packages
-  were onboarded and published on 2026-07-25 and no longer need this.
+- The 2026-08-01 maintenance rollout and post-publish checks are complete.
+  Before the next package batch, run a fresh upstream audit. The main open
+  packaging work is onboarding `hyprls` and `tree-sitter-hyprlang`; the main
+  automation follow-ups are the local KVM graphical stage and an offline
+  `@ts-for-gir/cli` path for AGS type generation.
