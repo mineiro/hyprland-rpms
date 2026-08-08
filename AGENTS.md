@@ -67,6 +67,59 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-08-08):
+  - Package commit `0ce2e51` (`Update Hyprland maintenance package set`) is
+    pushed to `origin/main`.
+  - Upstream version updates published successfully in `mineiro/hyprland`:
+    - `app2unit` `1.4.4` (COPR build `10838835`)
+    - `python-materialyoucolor` `3.0.4` (COPR build `10838836`)
+    - `satty` `0.22.0` (COPR build `10838837`)
+    - `hyprland` `0.56.2` (COPR build `10838838`)
+  - `hyprland-plugins` keeps upstream source tag `v0.56.0` (still the newest
+    plugin tag upstream publishes), moves its exact packaged Hyprland target
+    from `0.56.1` to `0.56.2`, and takes RPM release `3` (COPR build
+    `10838839`).
+  - All five COPR builds succeeded on Fedora 43, Fedora 44, and rawhide for
+    both x86_64 and aarch64 (30/30 chroot builds). Publish order used two
+    batches:
+    - independent packages: builds `10838835`..`10838838`
+    - exact Hyprland ABI plugins: `hyprland-plugins` `10838839`, queued with
+      `--after-build-id 10838838`
+  - `hyprland 0.56.2` is a pure patch release: its `CMakeLists.txt` is
+    byte-identical to `0.56.1`, so no dependency floor moved and no consumer
+    outside the plugin ABI lock needed a rebuild. Both downstream patches
+    (Lua 5.4 acceptance, GCC 15 `ranges::starts_with`) still apply.
+  - `glaze` was deliberately NOT updated even though upstream tagged `8.0.0`
+    and the audit reports it as `different`. Hyprland resolves glaze with
+    `find_package(glaze 7...<8)`, so an 8.x package would stop satisfying that
+    bound and silently fall back to a FetchContent download that cannot work
+    in offline mock/COPR builds. `7.9.1` is the newest 7.x tag. The constraint
+    is now recorded as a comment in `packages/glaze/glaze.spec`; do not take
+    the 8.x tags until Hyprland raises that bound.
+  - Snapshot/`manual`-tracked packages were resolved directly against upstream
+    rather than trusting the audit status, and all were already current:
+    the whole Astal stack is pinned to `9dac92f`, which is `Aylur/astal`
+    `main` HEAD; `material-symbols-fonts` is at `0^git20260731` (`50f0603`),
+    which is `google/material-design-icons` `master` HEAD;
+    `appmenu-glib-translator` `e200b726` is tag `25.04`; `wl-vapi-gen`
+    `458eb704` is tag `1.1.0`. No snapshot refresh was needed this round.
+  - Local validation before the package commit:
+    - full upstream version audit across all 72 packages
+    - fresh SRPM generation passed for all five changed/rebuilt packages
+    - `make check-specs` passed (0 errors)
+    - `make check-upgrade UPGRADE_BASE_REF=origin/main` passed and explicitly
+      confirmed the `hyprland-plugins` exact ABI lock was covered
+    - dependency-ordered Fedora 43/44/rawhide x86_64 `mock --chain` passed
+      15/15 against the `mineiro/hyprland` COPR dependency repo
+  - Post-publish verification: x86_64 `repoclosure` passed on Fedora 43,
+    Fedora 44, and rawhide. Published metadata confirms the newest builds are
+    `app2unit 1.4.4`, `python3-materialyoucolor 3.0.4`, `satty 0.22.0`,
+    `hyprland 0.56.2`, and `hyprland-plugins 0.56.0-3`, that all four plugin
+    subpackages require `hyprland = 0.56.2` exactly, and that a combined
+    `hyprland` + all-plugins install resolves with no conflicts.
+  - The uncommitted `packages/oo7-daemon/` bridge and its doc/`.copr/Makefile`
+    changes were deliberately left untouched and out of this commit, matching
+    the 2026-08-02 handoff decision that it stays unpublished.
 - Latest maintenance handoff (2026-08-01):
   - Package commit `03f8fb7` (`Update Hyprland maintenance package set`) is
     pushed to `origin/main`.
@@ -631,8 +684,8 @@ Use a staged validation approach instead of a single "smoke test":
    `hyprpaper` to `awww`, and update smoke tests/docs accordingly.
 6. Decide when to enable COPR webhooks/auto-rebuilds, then add upstream
    version bump automation only after the manual workflow remains stable.
-7. Onboard `hyprls` and `tree-sitter-hyprlang` to COPR
-   (`mineiro/hyprland`) and re-run `repoclosure` after publication.
+7. Onboard `tree-sitter-hyprlang` to COPR (`mineiro/hyprland`) and re-run
+   `repoclosure` after publication. `hyprls` is already published there.
 8. Package `@ts-for-gir/cli` (or split an AGS type-generation helper package)
    so `ags init` / `ags types` no longer depend on runtime `npx` network
    fetches.
@@ -719,8 +772,11 @@ When resuming, start by reading:
 
 Primary near-term task:
 
-- The 2026-08-01 maintenance rollout and post-publish checks are complete.
-  Before the next package batch, run a fresh upstream audit. The main open
-  packaging work is onboarding `hyprls` and `tree-sitter-hyprlang`; the main
-  automation follow-ups are the local KVM graphical stage and an offline
-  `@ts-for-gir/cli` path for AGS type generation.
+- The 2026-08-08 maintenance rollout and post-publish checks are complete.
+  Before the next package batch, run a fresh upstream audit, and remember that
+  `glaze` is intentionally held on 7.x by Hyprland's `find_package(glaze
+  7...<8)` bound, so its recurring `different` row is expected rather than
+  drift. The main open packaging work is onboarding `tree-sitter-hyprlang`
+  (`hyprls` is already published); the main automation follow-ups are the
+  local KVM graphical stage and an offline `@ts-for-gir/cli` path for AGS
+  type generation.
