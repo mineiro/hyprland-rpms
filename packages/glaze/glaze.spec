@@ -1,5 +1,11 @@
 %global debug_package %{nil}
 
+# Keep this package on the 7.x series. Hyprland resolves glaze with
+# `find_package(glaze 7...<8)`, so an 8.x update here would stop satisfying it
+# and silently fall back to an offline-unavailable FetchContent download.
+# 7.9.1 is the newest 7.x tag; do not take the upstream 8.x tags that the
+# upstream version audit reports until Hyprland raises that bound.
+
 Name:           glaze
 Version:        7.9.1
 Release:        %autorelease

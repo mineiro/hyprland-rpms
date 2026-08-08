@@ -2,7 +2,7 @@
 %global python3_sitearch %(%{__python3} -c "import sysconfig; print(sysconfig.get_path('platlib', vars={'base': '/usr', 'platbase': '/usr'}))")
 
 Name:           python-materialyoucolor
-Version:        3.0.3
+Version:        3.0.4
 Release:        %autorelease
 Summary:        Material You color generation algorithms for Python
 

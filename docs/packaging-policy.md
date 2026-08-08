@@ -27,7 +27,7 @@ This repo is packaging infrastructure, not an upstream source mirror.
 - Treat `hyprland-plugins` as ABI-family-coupled with Hyprland. If upstream
   has not published a plugin release for the target Hyprland family, keep
   plugins paused instead of forcing speculative compatibility.
-- Current decision: pair Hyprland `0.56.1` with the compatible
+- Current decision: pair Hyprland `0.56.2` with the compatible
   `hyprland-plugins` `v0.56.0` source family, rebuilt with the exact
   `%{hyprland_target_version}` runtime lock. Later Hyprland `0.56.x` patch
   releases may use the same policy unless upstream publishes a newer compatible

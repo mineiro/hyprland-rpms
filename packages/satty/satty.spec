@@ -3,7 +3,7 @@
 %global crate satty
 
 Name:           satty
-Version:        0.21.1
+Version:        0.22.0
 Release:        %autorelease
 Summary:        Modern screenshot annotation tool for Linux
 
