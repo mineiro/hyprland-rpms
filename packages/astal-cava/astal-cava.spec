@@ -1,10 +1,10 @@
-%global astal_commit 9dac92f20e6c89b9373bbb238c49b1cb115724db
+%global astal_commit a16a08c662d9decece15b7ee6d8019e686e529ea
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
-%global snapshot_date 20260724
+%global snapshot_date 20260818
 
 Name:           astal-cava
 Version:        0.1.0
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        CAVA integration library for Astal
 
 License:        LGPL-2.1-only
