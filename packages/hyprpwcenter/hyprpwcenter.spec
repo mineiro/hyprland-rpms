@@ -1,6 +1,6 @@
 Name:           hyprpwcenter
 Version:        0.1.2
-Release:        %autorelease -b 5
+Release:        %autorelease -b 6
 Summary:        GUI PipeWire control center for Hyprland
 
 License:        BSD-3-Clause

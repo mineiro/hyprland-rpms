@@ -1,6 +1,6 @@
 Name:           hyprshutdown
 Version:        0.1.1
-Release:        %autorelease -b 5
+Release:        %autorelease -b 6
 Summary:        Graceful shutdown/logout utility for Hyprland
 
 License:        BSD-3-Clause

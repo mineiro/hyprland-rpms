@@ -1,6 +1,6 @@
 Name:           hyprwire
 Version:        0.3.1
-Release:        %autorelease -b 5
+Release:        %autorelease -b 6
 Summary:        Hyprland ecosystem Wayland protocol codegen and wire helpers
 
 License:        BSD-3-Clause
