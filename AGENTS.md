@@ -67,6 +67,71 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-08-18):
+  - Two package commits are pushed to `origin/main`:
+    `061fb93` (`Update Hyprland maintenance package set`) and
+    `01bde4e` (`Refresh Astal and Material Symbols snapshots`).
+  - The upstream audit across all 73 packages found only two `different` rows:
+    `hyprutils` (a real bump) and `glaze` (the standing intentional hold).
+  - `hyprutils 0.14.0 -> 0.14.1` is ABI-compatible: `CMakeLists.txt` is
+    byte-identical to `0.14.0` and `SOVERSION` stays `13`, so there is no
+    soname transition. The release adds `os/ProcLock` and `os/Semaphore`,
+    normalizes namespaces repo-wide (no mangling change), and fixes
+    `memory/WeakPtr.hpp` (expired check when casting, upstream #118).
+  - That fix is in an inlined header, so all 19 in-repo
+    `pkgconfig(hyprutils)` consumers took a bumped `Release` base rather than
+    being left on stale inlined code. Dependency floors stayed at `>= 0.14.0`
+    because no consumer's upstream raised its requirement.
+  - `hyprland-plugins` was deliberately NOT rebuilt: it has no direct
+    `pkgconfig(hyprutils)` edge and locks only on hyprland's `Version`
+    (`0.56.2`), which did not change. The same call was made for the larger
+    `hyprutils 0.12.0` soname move in `7cc0388`.
+  - Astal stack refreshed from `9dac92f` (`20260724`) to `a16a08c`
+    (`20260818`) across all 19 packages, each taking a bumped `Release` base.
+    Upstream range is 4 commits touching only `lib/apps`, `lib/brightness`,
+    and `lib/notifd`; `brightness` is not packaged here. No meson or other
+    build-system file changed, so unlike the `20260724` refresh no
+    `BuildRequires` moved.
+  - `material-symbols-fonts` refreshed to `0^git20260814` (`e083cc6`).
+  - `glaze` remains held at `7.9.1` against upstream `8.1.0` for the
+    documented `find_package(glaze 7...<8)` reason. Treat its recurring
+    `different` row as expected, not drift.
+  - Process note for the next pass: the first local validation sweep built
+    only 19 of the 20 packages in the hyprutils batch. `hyprlauncher` had its
+    `Release` bumped and was committed in `061fb93`, but was missed in the
+    SRPM/mock list and had to be validated and published separately
+    afterwards. Derive the build list from the ABI gate's own consumer output
+    instead of retyping it.
+  - COPR: all 40 builds succeeded on Fedora 43, 44, and rawhide for both
+    x86_64 and aarch64. Publish order used explicit batching:
+    - `hyprutils` `10878611` (provider, own batch)
+    - after it: `hyprlang` `10878612`, `hyprgraphics` `10878613`,
+      `hyprwire` `10878614`, `aquamarine` `10878615`,
+      `hyprpolkitagent` `10878616`, `hyprpicker` `10878617`
+    - after those: `hyprtoolkit` `10878618`, `hyprland` `10878619`,
+      `hypridle` `10878620`, `hyprlock` `10878621`, `hyprqt6engine` `10878622`,
+      `hyprsunset` `10878623`, `xdg-desktop-portal-hyprland` `10878624`
+    - after `hyprtoolkit`: `hyprpaper` `10878625`, `hyprpwcenter` `10878626`,
+      `hyprshutdown` `10878627`, `hyprsysteminfo` `10878628`,
+      `hyprland-guiutils` `10878629`, `hyprlauncher` `10878667`
+    - Astal/fonts batch: independents `10878647`..`10878660`, then
+      `astal3` `10878661`, `astal4` `10878662`, `astal-greet` `10878663`,
+      `astal-mpris` `10878664`, `astal-notifd` `10878665`,
+      `astal-river` `10878666`
+  - Local validation before the package commits: 39 fresh SRPMs,
+    `make check-specs` (73 specfiles, 0 errors, 0 badness),
+    `check-abi-rebuilds --base-ref origin/main --head-ref WORKTREE` reporting
+    all 19 consumers covered, and dependency-ordered Fedora 43/44/rawhide
+    x86_64 `mock --chain` runs: 57/57 for the hyprutils batch, 60/60 for the
+    Astal/fonts batch, plus 3/3 for the late `hyprlauncher` rebuild.
+  - Post-publish verification: x86_64 `repoclosure` passed on Fedora 43, 44,
+    and rawhide with no unresolved dependencies. Published metadata confirms
+    `hyprutils 0.14.1-1`, `aquamarine 0.14.0-2`, `hyprland 0.56.2-2`,
+    `hyprtoolkit 0.5.4-7`, `hyprlauncher 0.1.6-6`, `astal-io 0.1.0-4`, and
+    `material-symbols-fonts 0^git20260814-1`.
+  - The uncommitted `packages/oo7-daemon/` bridge and its doc/`.copr/Makefile`
+    changes were again left untouched and out of both commits, matching the
+    2026-08-02 handoff decision that it stays unpublished.
 - Latest maintenance handoff (2026-08-08):
   - Package commit `0ce2e51` (`Update Hyprland maintenance package set`) is
     pushed to `origin/main`.
