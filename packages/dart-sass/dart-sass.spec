@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 
 Name:           dart-sass
-Version:        1.102.0
+Version:        1.103.1
 Release:        %autorelease
 Summary:        Sass compiler implemented in Dart
 
