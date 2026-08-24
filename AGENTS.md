@@ -67,6 +67,72 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-08-23):
+  - Two package commits are pushed to `origin/main`:
+    `a155fb7` (`Update Hyprland maintenance package set`) and
+    `1ccdcd8` (`Refresh Astal snapshot to 20260823`).
+  - The upstream audit across all 73 packages found only three rows:
+    `dart-sass` and `uwsm` (real bumps) and `glaze` (the standing hold).
+  - `dart-sass 1.102.0 -> 1.103.1` and `uwsm 0.26.6 -> 0.26.7`. Both are leaf
+    packages shipping no shared libraries, both on plain `%autorelease`, so
+    neither triggered a rebuild cascade nor had a stale rebuild base to reset.
+    `dart-sass` 1.103.1 has both linux-x64 and linux-arm64 assets and an
+    unchanged tarball layout. `uwsm` 0.26.7 is a one-fix patch release
+    (duplicate name in generated unit descriptions); `meson.build` and the
+    meson options are byte-identical and no files moved.
+  - Astal stack refreshed from `a16a08c` (`20260818`) to `bcd02cb`
+    (`20260823`) across all 19 packages, each taking a bumped `Release` base.
+  - Important for future Astal passes: this range contains
+    `fix(AstalWl): fix symbol visibilty`, which flips the `Output` `pending_*`
+    fields from public to private. That NARROWS the exported ABI while the
+    soname stays `libastal-wl.so.0`. There is no soname transition to key off,
+    so only the same-version release bump makes DNF replace installed
+    consumers. Verified post-build that `astal-wl` still provides
+    `libastal-wl.so.0` and `astal-river` links that same soname.
+  - Unlike the `20260818` refresh, a build-system file DID change this round:
+    `lib/wl/meson.build` adds `-DG_LOG_DOMAIN="AstalWl"`. It introduces no
+    dependency, so no `BuildRequires` moved. Keep checking this per refresh
+    rather than assuming.
+  - Real in-repo Astal build edges are narrower than the documented suggested
+    order implies: only `astal3`/`astal4` need `astal-io`, and only
+    `astal-river` needs `astal-wl`. Everything else has no internal Astal
+    `BuildRequires`, so 18 of 21 builds can start in one wave.
+  - `aylurs-gtk-shell` was deliberately NOT rebuilt: it requires `astal3` and
+    `astal4` unversioned with no `pkgconfig` ABI lock, so a release-only
+    change in those providers does not affect it.
+  - `glaze` remains held at `7.9.1` against upstream `8.1.0` for the
+    documented `find_package(glaze 7...<8)` reason. Expected, not drift.
+  - `material-symbols-fonts` is the only `manual` check package and was
+    already pinned at upstream master HEAD (`e083cc6`), so no refresh.
+  - COPR: all 21 builds succeeded. Publish order:
+    - Wave 1 (no in-batch deps, started together): `dart-sass` `10895795`,
+      `uwsm` `10895796`, `astal-io` `10895797`, `astal-wl` `10895798`,
+      `astal-apps` `10895799`, `astal-auth` `10895800`,
+      `astal-battery` `10895801`, `astal-bluetooth` `10895802`,
+      `astal-cava` `10895803`, `astal-greet` `10895804`,
+      `astal-hyprland` `10895805`, `astal-mpris` `10895806`,
+      `astal-network` `10895807`, `astal-notifd` `10895808`,
+      `astal-power-profiles` `10895809`, `astal-quarrel` `10895811`,
+      `astal-tray` `10895812`, `astal-wireplumber` `10895814`
+    - after `astal-io`: `astal3` `10895815`, `astal4` `10895816`
+    - after `astal-wl`: `astal-river` `10895817`
+  - Local validation: `make check-specs` (73 specfiles, 0 errors, 0 badness),
+    `make check-upgrade UPGRADE_BASE_REF=origin/main` (ABI coverage passed),
+    fresh SRPMs for all 21 packages, and Fedora 43/44/rawhide x86_64
+    `mock --chain` 63/63 (6 for the version bumps, 57 for the Astal set)
+    against the `mineiro/hyprland` COPR repo. Local aarch64 mock stays skipped;
+    COPR builds it natively.
+  - Post-publish validation: repoclosure OK on Fedora 43, 44, and rawhide;
+    container smoke tests passed and confirmed `uwsm-0.26.7` installing from
+    COPR. Note the smoke package set covers the Hyprland desktop stack only,
+    so the Astal packages and `dart-sass` are not exercised by it.
+  - Harness note for the next pass: when running repoclosure ad hoc in a
+    container, keep the `.repo` heredoc quoted so `$releasever`/`$basearch`
+    reach DNF unexpanded, and do not nest that quoted heredoc inside a
+    `bash -c '...'` string. Feed the script via `podman run -i ... bash -s`
+    instead. Both mistakes produced a false FAILED before the real run passed.
+  - The pre-existing `hyprland-share-picker --help` abort in the smoke run is
+    unrelated to this rollout and did not fail the gate.
 - Latest maintenance handoff (2026-08-18):
   - Two package commits are pushed to `origin/main`:
     `061fb93` (`Update Hyprland maintenance package set`) and
@@ -837,11 +903,14 @@ When resuming, start by reading:
 
 Primary near-term task:
 
-- The 2026-08-08 maintenance rollout and post-publish checks are complete.
-  Before the next package batch, run a fresh upstream audit, and remember that
-  `glaze` is intentionally held on 7.x by Hyprland's `find_package(glaze
-  7...<8)` bound, so its recurring `different` row is expected rather than
-  drift. The main open packaging work is onboarding `tree-sitter-hyprlang`
-  (`hyprls` is already published); the main automation follow-ups are the
-  local KVM graphical stage and an offline `@ts-for-gir/cli` path for AGS
-  type generation.
+- The 2026-08-23 maintenance rollout and post-publish checks are complete
+  (`a155fb7`, `1ccdcd8`; 21 COPR builds; repoclosure and container smoke green
+  on Fedora 43/44/rawhide). Before the next package batch, run a fresh upstream
+  audit, and remember that `glaze` is intentionally held on 7.x by Hyprland's
+  `find_package(glaze 7...<8)` bound, so its recurring `different` row is
+  expected rather than drift. The Astal set is pinned at `bcd02cb`
+  (`20260823`); check `lib/*/meson.build` for dependency moves on every
+  snapshot refresh, since the `20260823` range changed one. The main open
+  packaging work is onboarding `tree-sitter-hyprlang` (`hyprls` is already
+  published); the main automation follow-ups are the local KVM graphical stage
+  and an offline `@ts-for-gir/cli` path for AGS type generation.
