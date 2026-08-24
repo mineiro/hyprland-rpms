@@ -1,10 +1,10 @@
-%global astal_commit a16a08c662d9decece15b7ee6d8019e686e529ea
+%global astal_commit bcd02cbd1391e85f52c5ff63e00708b5b62f55ec
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
-%global snapshot_date 20260818
+%global snapshot_date 20260823
 
 Name:           astal-wl
 Version:        0.1.0
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        Generic Wayland helper library for Astal
 
 License:        LGPL-2.1-only
