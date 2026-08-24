@@ -16,6 +16,15 @@ This repo is packaging infrastructure, not an upstream source mirror.
 7. Use Fedora conditionals only when necessary (`%if 0%{?fedora} >= 44`), and document why.
 8. Test locally with `rpmbuild` and `mock` before enabling COPR auto-rebuilds.
 
+For Rust applications built offline in COPR, the generated
+`cargo-vendor.txt` manifest is the authoritative bundled-crate inventory and
+must be shipped as a license file. Fedora's RPM file attribute generator uses
+it to emit the required `Provides: bundled(crate(...))` metadata automatically.
+Also ship the generated dependency license summary and document the vendoring
+rationale and retirement/unbundling criterion in the package README. Vendoring
+must use the committed lock file with `cargo vendor --locked`; never hide a
+stale lock by retrying unlocked.
+
 ## Hypr ecosystem specifics
 
 - Version compatibility matters across `hypr*` libraries and Hyprland.

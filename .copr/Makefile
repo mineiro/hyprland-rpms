@@ -40,6 +40,8 @@ srpm: prepare
 			rpm_sourcedir="$$(rpm --eval '%{_sourcedir}' 2>/dev/null || true)"; \
 			srcdir=""; \
 			src0_path="./$$src0_name"; \
+			rust_vendor_patches="$$(awk -F= '/^RUST_VENDOR_PATCHES=/{sub(/^[^=]*=/, ""); print; exit}' ./package.env 2>/dev/null || true)"; \
+			source_date_epoch="$$(awk -F= '/^SOURCE_DATE_EPOCH=/{print $$2; exit}' ./package.env 2>/dev/null || true)"; \
 			trap 'rm -rf "$$tmpdir"' EXIT; \
 			if [ ! -f "$$src0_path" ] && [ -f "./sources/$$src0_name" ]; then \
 				src0_path="./sources/$$src0_name"; \
@@ -58,14 +60,28 @@ srpm: prepare
 				src0_path="./$$src0_name"; \
 			fi; \
 			[ -f "$$src0_path" ] || { echo "Downloaded Source0 not found for vendoring: $$src0_name"; exit 1; }; \
+			if [ -f ./sources.sha256 ]; then \
+				expected_sha="$$(awk -v name="$$src0_name" '$$2 == name || $$2 == "*" name { print $$1; exit }' ./sources.sha256)"; \
+				[ -n "$$expected_sha" ] || { echo "No checksum recorded for $$src0_name"; exit 1; }; \
+				actual_sha="$$(sha256sum "$$src0_path" | awk '{print $$1}')"; \
+				[ "$$actual_sha" = "$$expected_sha" ] || { echo "Source0 checksum mismatch for $$src0_name"; exit 1; }; \
+			fi; \
 			tar -xf "$$src0_path" -C "$$tmpdir"; \
 		srcdir="$$(find "$$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -1)"; \
 		[ -n "$$srcdir" ] || { echo "Failed to locate extracted source dir for vendoring"; exit 1; }; \
-		( cd "$$srcdir" && if ! cargo vendor --locked vendor >/dev/null; then \
-			echo "cargo vendor --locked failed for ./$(specfile), retrying without --locked" >&2; \
-			cargo vendor vendor >/dev/null; \
-		fi ); \
-		tar -cJf "./$$vendor_name" -C "$$srcdir" vendor; \
+		for vendor_patch in $$rust_vendor_patches; do \
+			[ -f "./$$vendor_patch" ] || { echo "Rust vendor patch not found: $$vendor_patch"; exit 1; }; \
+			patch -d "$$srcdir" -p1 < "./$$vendor_patch"; \
+		done; \
+		( cd "$$srcdir" && cargo vendor --locked vendor >/dev/null ); \
+		if [ -n "$$source_date_epoch" ]; then \
+			tar --sort=name --mtime="@$$source_date_epoch" --owner=0 --group=0 --numeric-owner -cJf "./$$vendor_name" -C "$$srcdir" vendor; \
+		else \
+			tar -cJf "./$$vendor_name" -C "$$srcdir" vendor; \
+		fi; \
+		if [ -f ./vendor.sha256 ]; then \
+			sha256sum -c ./vendor.sha256; \
+		fi; \
 		rm -rf "$$tmpdir"; \
 		trap - EXIT; \
 	fi

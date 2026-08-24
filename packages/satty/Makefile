@@ -19,10 +19,7 @@ srpm:
 		tar -xf "$(SOURCEDIR)/$$src0_name" -C "$$tmpdir"; \
 		srcdir="$$(find "$$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -1)"; \
 		[ -n "$$srcdir" ] || { echo "Failed to locate extracted source dir for vendoring"; exit 1; }; \
-		( cd "$$srcdir" && if ! cargo vendor --locked vendor >/dev/null; then \
-			echo "cargo vendor --locked failed for $(SPEC), retrying without --locked" >&2; \
-			cargo vendor vendor >/dev/null; \
-		fi ); \
+		( cd "$$srcdir" && cargo vendor --locked vendor >/dev/null ); \
 		tar -cJf "$(SOURCEDIR)/$$vendor_name" -C "$$srcdir" vendor; \
 		rm -rf "$$tmpdir"; \
 		trap - EXIT; \

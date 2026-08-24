@@ -133,6 +133,32 @@ Key files/directories:
     instead. Both mistakes produced a false FAILED before the real run passed.
   - The pre-existing `hyprland-share-picker --help` abort in the smoke run is
     unrelated to this rollout and did not fail the gate.
+  - `oo7-daemon` was abandoned on 2026-08-23 at the maintainer's direction.
+    The uncommitted `packages/oo7-daemon/` tree and every oo7-specific doc
+    section (`README.md`, `docs/copr-setup.md`, the security-provider blocks in
+    `docs/packaging-policy.md` and `docs/release-process.md`, and the
+    2026-08-02 `AGENTS.md` handoff block) were deleted. Earlier handoff records
+    above still mention the bridge; they are historical and describe state that
+    no longer exists. Do not go looking for the package.
+  - What was kept from that line of work, because it is generic Rust packaging
+    infrastructure rather than oo7-specific: the `.copr/Makefile` vendor
+    hardening (Source0 checksum verification when `sources.sha256` exists,
+    deterministic vendor tarballs when `SOURCE_DATE_EPOCH` is set, optional
+    `vendor.sha256` verification, and removal of the silent
+    `cargo vendor --locked` -> unlocked retry) plus the Rust vendoring
+    paragraph in `docs/packaging-policy.md`.
+  - The `.copr/Makefile` also gained a `RUST_VENDOR_PATCHES` hook that applies
+    declared patches before vendoring. It currently has NO consumers; it was
+    added for oo7 and is inert unless a `package.env` sets the variable. Remove
+    it if no future Rust package needs pre-vendor patching.
+  - The strict-locking change was made consistent across the repo: the
+    unlocked-retry fallback was also removed from `packages/departure`,
+    `packages/satty`, and `packages/swayosd` Makefiles (`hyprdim` was already
+    strict, `awww` fetches a prebuilt vendor tarball and never vendored
+    locally). Without this, a stale `Cargo.lock` would have passed a local
+    `make srpm` and only failed later in COPR. Verified `cargo vendor --locked`
+    succeeds for all five Rust packages (`awww`, `departure`, `hyprdim`,
+    `satty`, `swayosd`) and that each still produces an SRPM.
 - Latest maintenance handoff (2026-08-18):
   - Two package commits are pushed to `origin/main`:
     `061fb93` (`Update Hyprland maintenance package set`) and
