@@ -67,6 +67,59 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-08-26):
+  - No package changes this round. The upstream audit across all 72 packages
+    returned exactly one row, `glaze` (`7.9.1` local vs `8.1.0` upstream), which
+    is the standing intentional hold, not drift.
+  - Re-verified the `glaze` hold rather than assuming it: Hyprland `v0.56.2`
+    `CMakeLists.txt` still declares `find_package(glaze 7...<8 QUIET)`, and
+    `7.9.1` is the newest tag in the upstream 7.x family, so there is no
+    within-family patch bump available either. The hold is both correct and
+    already at the ceiling of what the constraint allows.
+  - Astal upstream HEAD is still `bcd02cb` (the `20260823` snapshot already
+    packaged) and `material-symbols-fonts` is still at `e083cc6`, so neither
+    snapshot package needed a refresh.
+  - The real finding this round was CI, not packaging. The scheduled
+    `COPR Smoke Tests` rawhide leg had been failing every day since at least
+    2026-08-22 (runs `32565846840`, `32631971378`, `32834157007`,
+    `32955418955`), always with the same error:
+    `OpenPGP check for package "openh264-2.6.0-3.fc45.x86_64" ... from repo
+    "fedora-cisco-openh264" has failed: Import of the key didn't help, wrong
+    key?`. Fedora 43 and 44 passed throughout.
+  - Root cause is external: `fedora-cisco-openh264` is a third-party repo
+    enabled by default in Fedora images, and it lags Fedora branch points.
+    After rawhide moved to `fc46` the repo still published an `fc45` build,
+    signed with a key the rawhide keyring does not accept. `openh264` is not
+    something this COPR builds; it reaches the transaction only as a transitive
+    dependency of `libavcodec-free`.
+  - Fix: `scripts/copr-smoke-tests.sh` now disables `fedora-cisco-openh264` for
+    both the base upgrade and the desktop-stack install, via a
+    `disable_third_party_repos` array. Verified BEFORE making the change that
+    Fedora's own `noopenh264` provides the same `libopenh264.so.8()(64bit)` on
+    all three releases (`2.6.0-2.fc43`, `2.6.0-4.fc44`, `2.6.0-5.fc45`, all from
+    the main Fedora repo), so the dependency still resolves and the transaction
+    stays complete and fully Fedora-signed. This is deliberately NOT
+    `--nogpgcheck` and not a package exclusion.
+  - Made unconditional rather than rawhide-only on purpose: the repo is outside
+    what this COPR validates, the `noopenh264` fallback exists on every
+    supported release, and scoping it to rawhide would simply re-break at the
+    next branch point (`fc46` -> `fc47`).
+  - Local validation: `make check-specs` (72 specfiles, 0 errors, 0 badness),
+    `bash -n` on the patched script, and a full podman smoke run of the patched
+    script across Fedora 43, 44, and rawhide with no env overrides — all three
+    reported `[smoke] Smoke test passed` and the wrapper reported
+    `[smoke] All container smoke tests passed`.
+  - The `hyprland-share-picker --help` abort still appears in every leg. It is
+    pre-existing, unrelated to this change, and already tolerated by the script.
+  - Repoclosure was green on 43/44/rawhide throughout this period, so no
+    same-version release rebuilds were needed.
+  - Harness note: `podman run ... bash -s` needs `-i` or the heredoc script is
+    silently discarded and the command exits 0 having done nothing. This
+    compounds the previously recorded quoting trap; both produce a confident
+    but empty result.
+  - Next open task: confirm the scheduled smoke run goes green on its next
+    trigger, and drop the `fedora-cisco-openh264` workaround only if Fedora ever
+    makes that repo track rawhide properly.
 - Latest maintenance handoff (2026-08-23):
   - Two package commits are pushed to `origin/main`:
     `a155fb7` (`Update Hyprland maintenance package set`) and

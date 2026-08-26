@@ -147,6 +147,7 @@ run_inside_container() {
   local repo_id
   local dnf_opts
   local libdir plugin_dir
+  local -a disable_third_party_repos
   local -a repo_packages plugin_packages all_packages expected_bins plugin_sos
 
   if [[ -z "${owner}" || -z "${project}" ]]; then
@@ -155,7 +156,19 @@ run_inside_container() {
   fi
 
   repo_id="copr:${owner}:${project}"
-  dnf_opts=("--setopt=install_weak_deps=0" "--nodocs")
+
+  # "fedora-cisco-openh264" is a third-party repo enabled by default in Fedora
+  # images.  It ships nothing this COPR builds or validates, but the Hypr stack
+  # pulls openh264 transitively through libavcodec-free, so its content lands in
+  # our install transaction.  That repo lags Fedora branch points: once rawhide
+  # moved to fc46 it still served an fc45 build signed with a key the rawhide
+  # keyring rejects, failing the entire transaction on a package unrelated to
+  # this stack.  Fedora's own "noopenh264" provides the same libopenh264 soname
+  # on 43/44/rawhide, so disabling the repo keeps the transaction complete,
+  # fully Fedora-signed, and independent of a third-party publishing schedule.
+  disable_third_party_repos=("--disablerepo=fedora-cisco-openh264")
+
+  dnf_opts=("--setopt=install_weak_deps=0" "--nodocs" "${disable_third_party_repos[@]}")
   if [[ -n "${SMOKE_DNF_OPTS:-}" ]]; then
     # shellcheck disable=SC2206
     dnf_opts+=(${SMOKE_DNF_OPTS})
@@ -169,6 +182,7 @@ run_inside_container() {
   # newly published library is not paired with an older base-image runtime.
   log "Refreshing installed Fedora base packages"
   dnf_cmd -y --refresh --disablerepo="${repo_id}" \
+    "${disable_third_party_repos[@]}" \
     --setopt=install_weak_deps=0 upgrade
 
   # Install the desktop-stack package set covered by this smoke harness.

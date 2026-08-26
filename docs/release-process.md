@@ -183,6 +183,28 @@ Notes:
 - The KVM harness auto-downloads/caches Fedora cloud images and verifies checksums.
 - In graphical mode, the harness tries virgl/SPICE GL acceleration by default and automatically falls back to non-accelerated graphics when the host lacks working EGL/virgl.
 - `gdm` is the default graphical session path because it exercises the distro/default Hyprland session flow; tty graphical mode remains available for debugging (`--graphical-session-mode tty`).
+- The container smoke harness disables the third-party `fedora-cisco-openh264`
+  repo. That repo is enabled by default in Fedora images and lags Fedora branch
+  points, so it can serve a package built for the previous release and signed
+  with a key the current chroot rejects. `openh264` is not something this COPR
+  builds; it only enters the transaction as a transitive dependency of
+  `libavcodec-free`. Fedora's own `noopenh264` provides the same
+  `libopenh264.so.8()(64bit)` on 43/44/rawhide, so the dependency still
+  resolves and the transaction stays complete and Fedora-signed.
+
+## Third-party repo failures in smoke runs
+
+- A smoke failure naming a repo this project does not build for is external
+  drift, not a packaging defect. Confirm the failing package's `repoid` before
+  treating it as a stack problem.
+- Do not silence such a failure with `--nogpgcheck` or by skipping the package.
+  Prefer disabling the third-party repo when an equivalent Fedora-signed
+  provider exists, so the dependency is still resolved and installed.
+- Recent example: from 2026-08-22 the rawhide smoke leg failed on
+  `openh264-2.6.0-3.fc45` from `fedora-cisco-openh264` with
+  `Signature verification failed`, after rawhide moved to `fc46` while that
+  repo still published an `fc45` build. Fedora 43 and 44 were unaffected
+  because the repo carries matching builds for released versions.
 
 ## Automation later
 
