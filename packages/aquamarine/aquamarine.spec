@@ -1,6 +1,6 @@
 Name:           aquamarine
-Version:        0.14.0
-Release:        %autorelease -b 2
+Version:        0.15.0
+Release:        %autorelease
 Summary:        Lightweight Linux rendering backend library for the Hypr ecosystem
 
 License:        BSD-3-Clause
@@ -15,7 +15,7 @@ BuildRequires:  pkgconfig(egl)
 BuildRequires:  pkgconfig(gbm)
 BuildRequires:  pkgconfig(glesv2)
 BuildRequires:  pkgconfig(hwdata)
-BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.2
 BuildRequires:  pkgconfig(libdisplay-info)
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libinput) >= 1.26.0

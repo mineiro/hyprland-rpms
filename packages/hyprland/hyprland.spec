@@ -6,7 +6,7 @@
 
 Name:           hyprland
 Version:        0.56.2
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Dynamic tiling Wayland compositor
 
 # TODO: Re-verify all bundled component licenses for the target version.
@@ -25,7 +25,7 @@ BuildRequires:  glslang-devel
 BuildRequires:  meson
 BuildRequires:  ninja-build
 BuildRequires:  python3
-BuildRequires:  pkgconfig(aquamarine) >= 0.14.0
+BuildRequires:  pkgconfig(aquamarine) >= 0.15.0
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(egl)
 BuildRequires:  pkgconfig(gbm)
@@ -35,7 +35,7 @@ BuildRequires:  pkgconfig(hwdata)
 BuildRequires:  pkgconfig(hyprcursor) >= 0.1.13
 BuildRequires:  pkgconfig(hyprgraphics) >= 0.5.1
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.2
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(lcms2)

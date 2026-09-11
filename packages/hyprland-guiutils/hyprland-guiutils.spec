@@ -1,6 +1,6 @@
 Name:           hyprland-guiutils
 Version:        0.2.2
-Release:        %autorelease -b 2
+Release:        %autorelease -b 3
 Summary:        Hyprland GUI utility applications
 
 License:        BSD-3-Clause
@@ -12,8 +12,8 @@ ExcludeArch:    %{ix86}
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
-BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.2
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.6.0
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(xkbcommon)

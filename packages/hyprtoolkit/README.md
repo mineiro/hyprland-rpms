@@ -1,9 +1,12 @@
 # hyprtoolkit
 
-Starter packaging directory for `hyprtoolkit` in this monorepo.
+Fedora RPM packaging for `hyprtoolkit`.
 
-Current status:
-- starter spec added (adapted from the `solopasha/hyprlandRPM` baseline, but updated to target `0.5.4`)
-- expected to be a prerequisite for newer `hyprpaper` releases (`0.8.x`)
-- local SRPM, Fedora 43/44/rawhide x86_64 mock chain validation, and COPR
-  rebuild pass for the current `aquamarine 0.12.1` stack
+Current packaging target:
+
+- upstream release `0.6.0` from `hyprwm/hyprtoolkit`
+- Wayland GUI toolkit used by Hyprland utilities and Hyprpolkitagent
+- builds against Hyprutils `>= 0.14.2` and the Aquamarine `0.15.0` stack
+- exports `libhyprtoolkit.so.6`; in-repo consumers need a release rebuild
+  when moving from the `0.5.x` ABI
+- local SRPM/mock/COPR validation tracked in `AGENTS.md`

@@ -8,7 +8,7 @@
 
 Name:           hyprpaper
 Version:        0.8.4
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        Blazing fast Wayland wallpaper utility with IPC controls
 
 # LICENSE: BSD-3-Clause
@@ -26,8 +26,8 @@ BuildRequires:  systemd-rpm-macros
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(glesv2)
 BuildRequires:  pkgconfig(hyprlang) >= 0.6.8
-BuildRequires:  pkgconfig(hyprtoolkit) >= 0.5.4
-BuildRequires:  pkgconfig(hyprutils) >= 0.14.0
+BuildRequires:  pkgconfig(hyprtoolkit) >= 0.6.0
+BuildRequires:  pkgconfig(hyprutils) >= 0.14.2
 BuildRequires:  pkgconfig(hyprwire) >= 0.3.0
 BuildRequires:  pkgconfig(hyprwayland-scanner) >= 0.4.5
 BuildRequires:  pkgconfig(libdrm)

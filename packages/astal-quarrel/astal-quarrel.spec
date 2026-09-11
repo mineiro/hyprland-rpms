@@ -1,10 +1,10 @@
-%global astal_commit bcd02cbd1391e85f52c5ff63e00708b5b62f55ec
+%global astal_commit ae8dc0acc66932171ec70d347a8cab9310ce74e4
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
-%global snapshot_date 20260823
+%global snapshot_date 20260907
 
 Name:           astal-quarrel
 Version:        0.1.0
-Release:        %autorelease -b 4
+Release:        %autorelease -b 5
 Summary:        Quarrel helper library from the Astal project
 
 License:        LGPL-2.1-only
