@@ -67,6 +67,92 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-09-10):
+  - Package commit `79cc32f` (`Update Hyprland stack and refresh Astal snapshots`)
+    and smoke-harness fix `2012af9` are pushed to `origin/main`.
+  - Full upstream audit covered all 72 packages. Updated `aquamarine`
+    `0.14.0 -> 0.15.0`, `hyprutils` `0.14.1 -> 0.14.2`, `hyprtoolkit`
+    `0.5.4 -> 0.6.0`, `hyprpolkitagent` `0.1.3 -> 0.2.0`, and `dart-sass`
+    `1.103.1 -> 1.104.0`. True version bumps reset stale Release bases.
+  - Aquamarine moves `libaquamarine.so.13 -> .14`; Hyprtoolkit moves
+    `libhyprtoolkit.so.5 -> .6`. Hyprutils retains `.so.13` and adds its
+    event-loop API. All 19 direct Hyprutils consumers are covered by version
+    bumps or same-version Release rebuilds; 16 packages needed release-only
+    rebuilds. Consumer dependency floors now select the updated stack.
+  - Hyprtoolkit adds `pkgconfig(absl_flat_hash_map)` and requires Hyprutils
+    `>= 0.14.2`. Hyprpolkitagent replaces Qt/QML with Hyprtoolkit and sdbus-c++:
+    removed Qt/polkit-qt build dependencies and `hyprland-qt-support` runtime
+    dependency; added the new upstream build dependencies and explicit
+    runtime `Requires: polkit` for its authentication helper/daemon.
+  - Hyprland stays at `0.56.2`, rebuilt at Release base 3 against Aquamarine
+    `.so.14`. Existing downstream patches still apply. Plugins keep source
+    `v0.56.0` and their exact Hyprland `0.56.2` lock; no version change to track.
+  - All 19 Astal packages refreshed together from `bcd02cb` (`20260823`)
+    to `ae8dc0a` (`20260907`), each with a bumped Release base. Changes to
+    existing packaged libraries are the notifd CLI double-free fix and
+    WirePlumber initialization/audio fixes and logging; their build-system
+    files and public headers are unchanged. New upstream `idle-notify` and
+    `workspace` libraries are not added by this maintenance pass.
+  - Build-order correction to the August 23 notes: `quarrel-0.1` is
+    provided by `astal-quarrel`, so it must precede `astal-greet`,
+    `astal-mpris`, and `astal-notifd`. Resolve pkg-config aliases when
+    deriving the graph (`astal-io-0.1` and `astal-wl-0.1` also differ from
+    their source-package names).
+  - Material Symbols refreshed to `0^git20260904` (`0cbb088`).
+  - Glaze remains deliberately held at `7.9.1` against upstream `8.3.0`:
+    rechecked Hyprland v0.56.2's `find_package(glaze 7...<8 QUIET)` and
+    verified `7.9.1` is still the newest 7.x tag. The final changed-only
+    upstream audit reports exactly this hold.
+  - Local validation: 41 fresh SRPMs, `make check-upgrade` against the
+    pre-update `origin/main` (72 specfiles, 0 errors, ABI coverage passed),
+    and dependency-ordered x86_64 mock chains on Fedora 43/44/rawhide:
+    123/123 builds passed. RPM metadata confirms Hyprland and Hyprtoolkit
+    require Aquamarine `.so.14`, and Hyprpolkitagent requires Hyprtoolkit
+    `.so.6`, sdbus-c++ `.so.2`, and polkit without Qt requirements.
+  - COPR: all 41 builds succeeded on all six Fedora 43/44/rawhide x86_64 and
+    aarch64 chroots (246/246, verified through the chroot API). Four batches
+    used explicit `--with-build-id` / `--after-build-id` ordering:
+    - Wave 1: `hyprutils` `10973801`, `astal-quarrel` `10973802`, `astal-apps`
+      `10973803`, `astal-auth` `10973804`, `astal-battery` `10973805`, `astal-bluetooth`
+      `10973806`, `astal-cava` `10973807`, `astal-hyprland` `10973808`, `astal-io`
+      `10973809`, `astal-network` `10973810`, `astal-power-profiles` `10973811`, `astal-
+      wl` `10973812`, `astal-tray` `10973813`, `astal-wireplumber` `10973814`, `dart-
+      sass` `10973815`, `material-symbols-fonts` `10973816`
+    - Wave 2: `aquamarine` `10973817`, `hyprgraphics` `10973818`, `hyprlang` `10973819`,
+      `hyprpicker` `10973820`, `hyprwire` `10973821`, `astal-greet` `10973822`, `astal-
+      mpris` `10973824`, `astal-notifd` `10973825`, `astal3` `10973826`, `astal4`
+      `10973827`, `astal-river` `10973828`
+    - Wave 3: `hypridle` `10973829`, `hyprlock` `10973830`, `hyprqt6engine` `10973831`,
+      `hyprsunset` `10973832`, `hyprtoolkit` `10973833`, `xdg-desktop-portal-hyprland`
+      `10973834`, `hyprland` `10973835`
+    - Wave 4: `hyprland-guiutils` `10973836`, `hyprlauncher` `10973837`, `hyprpaper`
+      `10973838`, `hyprpolkitagent` `10973839`, `hyprpwcenter` `10973840`,
+      `hyprshutdown` `10973841`, `hyprsysteminfo` `10973842`
+  - Scheduled smoke and repoclosure were green before the rollout, closing
+    the August 26 open task: the Cisco openh264 workaround is holding.
+  - Post-publish repoclosure passed on all three releases (run `34553339082`).
+    Initial smoke run `34553340844` installed all updated RPMs successfully
+    and passed provenance/file checks, then exposed a harness bug on all
+    three releases: `fumon --help` attempted to access a missing user bus.
+  - Root cause: the new `polkit` dependency pulls in `systemd`/`systemctl`,
+    enabling a branch previously skipped in minimal containers. The same
+    `uwsm 0.26.7-1` was present before and after; `fumon` has no help mode
+    and always starts its persistent session monitor. Checking merely for
+    `systemctl` was therefore invalid even with a working user bus.
+  - Fix `2012af9`: validate fumon's shell syntax with `sh -n`, retaining its
+    executable/service-file checks. Runtime monitoring requires a real user
+    session. Reproduced the failing command and full smoke run in a retained
+    Fedora 43 container, then verified the fixed full smoke run passes in
+    that same container; removed the debug container afterwards.
+  - Corrected smoke run `34553682811` passed on Fedora 43, 44, and
+    rawhide; spec/ABI lint also passed for both commits (`34550817849`,
+    `34553677411`). The pre-existing tolerated share-picker help abort
+    remains unrelated. No graphical-session or authentication runtime test
+    was performed; container checks establish installability/layout/CLI
+    coverage, not those session-dependent behaviors.
+  - Next maintenance pass: retain the Glaze 7.x hold until Hyprland raises
+    its bound and retain the Cisco openh264 workaround. No failed builds or
+    validation gates remain from this rollout.
 - Latest maintenance handoff (2026-08-26):
   - No package changes this round. The upstream audit across all 72 packages
     returned exactly one row, `glaze` (`7.9.1` local vs `8.1.0` upstream), which
