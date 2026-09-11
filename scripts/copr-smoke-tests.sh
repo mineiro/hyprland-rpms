@@ -308,11 +308,10 @@ run_inside_container() {
   uwsm --help >/dev/null
   uuctl --help >/dev/null
   satty --version >/dev/null
-  if command -v systemctl >/dev/null 2>&1; then
-    fumon --help >/dev/null
-  else
-    log "Skipping fumon --help (systemctl not present in minimal container)"
-  fi
+  # fumon has no --help mode: it starts a persistent user-session monitor.
+  # Check its shell syntax here; executable and service presence are checked above.
+  log "Checking fumon shell syntax (runtime requires a user session)"
+  sh -n "$(command -v fumon)"
 
   log "Smoke test passed"
 }

@@ -191,6 +191,10 @@ Notes:
   `libavcodec-free`. Fedora's own `noopenh264` provides the same
   `libopenh264.so.8()(64bit)` on 43/44/rawhide, so the dependency still
   resolves and the transaction stays complete and Fedora-signed.
+- `fumon` has no `--help` mode and starts a persistent user-session monitor
+  regardless of its arguments. Container smoke checks its executable, service
+  file, and shell syntax; runtime monitoring needs a real user session. Merely
+  finding `systemctl` does not establish that a user systemd/D-Bus session exists.
 
 ## Third-party repo failures in smoke runs
 
