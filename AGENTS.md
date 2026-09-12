@@ -67,6 +67,43 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance handoff (2026-09-12):
+  - Package commit `fed645d` (`Update Dart Sass and Material Symbols snapshot`)
+    is pushed to `origin/main`.
+  - Audited all 72 packages. Updated `dart-sass` `1.104.0 -> 1.104.1` and
+    `material-symbols-fonts` `0^git20260904 -> 0^git20260911` (`40a7a29`).
+    Both use plain `%autorelease`; neither requires consumer rebuilds.
+  - Sass fixes comment emission, invalid-selector diagnostics, and watch/update
+    behavior. Both Linux architecture assets exist with unchanged layout.
+    The font snapshot updates all three packaged TTFs/codepoint lists; the
+    Outlined codepoint comparison adds seven names and removes none.
+  - Astal upstream advanced from `ae8dc0a` to `e07013e` in one commit affecting
+    only `lib/idle-notify/src/{notification,notifier}.vala`. That library is not
+    packaged here, and no packaged source or build-system file changed. Kept
+    all 19 packages together on `ae8dc0a` without unnecessary rebuilds. This
+    is intentional snapshot lag; compare from that pin on the next pass.
+  - Glaze remains held at `7.9.1` against upstream `8.3.0`: rechecked Hyprland
+    `v0.56.2`'s `find_package(glaze 7...<8 QUIET)` and that `7.9.1` is still
+    the newest 7.x tag. Final changed-only audit reports exactly this hold.
+    `appmenu-glib-translator` and `wl-vapi-gen` pins still match their tags.
+  - Local validation: two fresh SRPMs, `make check-upgrade` against the
+    pre-update `origin/main` (72 specs, 0 errors, ABI coverage passed), and
+    Fedora 43/44/rawhide x86_64 mock chains passed 6/6. Used isolated mock
+    roots with `--uniqueext=hypr-maint-20260912`.
+  - COPR builds `dart-sass` `10980453` and `material-symbols-fonts` `10980455`
+    succeeded on all six Fedora 43/44/rawhide x86_64/aarch64 chroots (12/12,
+    verified through the chroot API). Both independent packages used one
+    explicit batch via `--with-build-id`.
+  - GitHub spec lint passed (`34722260700`). Post-publish repoclosure passed
+    on all three releases (`34722422217`). Targeted fresh-container installs
+    on 43/44/rawhide confirmed both new versions came from COPR, Sass version
+    and SCSS compilation checks passed, fontconfig found all three font
+    families, and `rpm -V` passed for both packages. These packages are outside
+    the desktop smoke script's target set, hence the separate checks.
+  - Post-publish desktop container smoke passed on all three releases
+    (`34722423570`). No graphical-session test was needed for these leaf
+    updates. Retain the Glaze hold and Cisco openh264 workaround; no failed
+    builds or validation gates remain from this pass.
 - Latest maintenance handoff (2026-09-10):
   - Package commit `79cc32f` (`Update Hyprland stack and refresh Astal snapshots`)
     and smoke-harness fix `2012af9` are pushed to `origin/main`.
