@@ -1,5 +1,5 @@
 Name:           hyprland-protocols
-Version:        0.7.0
+Version:        0.7.1
 Release:        %autorelease
 Summary:        Wayland protocols used by Hyprland ecosystem components
 
@@ -9,7 +9,7 @@ Source0:        %{url}/archive/refs/tags/v%{version}/%{name}-%{version}.tar.gz
 
 BuildArch:      noarch
 
-BuildRequires:  meson
+BuildRequires:  cmake
 BuildRequires:  ninja-build
 
 %description
@@ -20,11 +20,11 @@ protocol extensions.
 %autosetup -p1 -n %{name}-%{version}
 
 %build
-%meson
-%meson_build
+%cmake -GNinja
+%cmake_build
 
 %install
-%meson_install
+%cmake_install
 
 %check
 # No upstream test suite.

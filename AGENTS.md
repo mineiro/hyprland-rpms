@@ -67,6 +67,40 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
+- Latest maintenance pass (2026-09-23, local validation complete; publication pending):
+  - Worktree started clean on `main` at `ddf67de`. Updated five release packages:
+    `aquamarine` `0.15.0 -> 0.15.1`, `caelestia-cli` `1.1.2 -> 1.1.3`,
+    `dart-sass` `1.104.1 -> 1.105.0`, `hyprland-protocols` `0.7.0 -> 0.7.1`,
+    and `uwsm` `0.26.7 -> 0.27.0`.
+  - Refreshed the full 19-package Astal set from `ae8dc0a` (`20260907`) to
+    `be986c1` (`20260923`), bumping each same-version Release base. Packaged
+    upstream changes include the tray watcher fix and AstalWl's relocation
+    from `lib/wl` to `lib/wl/wl`; adjusted `packages/astal-wl/astal-wl.spec`
+    accordingly. Upstream also adds an un-packaged `wl4` library and moves
+    idle-notify/workspace code; those components remain out of scope.
+  - Updated `material-symbols-fonts` to master snapshot `27e9ef1`
+    (`20260923`); the package still contains the same three variable families
+    (Outlined, Rounded, Sharp).
+  - Aquamarine 0.15.1 keeps SOVERSION 14. The ABI gate still requires consumer
+    rebuilds on provider Version changes, so `hyprland` was bumped to
+    `%autorelease -b 4` and `hyprtoolkit` to `%autorelease -b 2`.
+  - Hyprland Protocols 0.7.1 replaced Meson with CMake. Updated BuildRequires
+    to CMake and Ninja and switched the spec to `%cmake` macros. The first mock
+    attempt caught a missing `ninja-build` BuildRequires; it was added and the
+    corrected package passed all three releases.
+  - Glaze remains deliberately held at 7.9.1: Hyprland 0.56.2 still requires
+    `glaze 7...<8`; the final changed-only audit reports only this expected
+    hold. Astal and Material Symbols master commits were checked directly.
+  - Local validation: all 27 fresh SRPMs generated; `make check-specs` passed
+    for 72 specs (0 errors, 3 existing warnings); `make check-upgrade
+    UPGRADE_BASE_REF=origin/main` passed with both Aquamarine consumers covered;
+    dependency-ordered Fedora 43/44/rawhide x86_64 mock builds passed 27/27.
+    The AstalWl path move and Protocols build-system move were both caught and
+    fixed during mock validation. Aarch64 mock was not run; COPR should build
+    its native aarch64 chroots.
+  - Not yet committed or published. Next: commit and push the package set,
+    trigger COPR builds in provider/dependency order for all six chroots, then
+    check repoclosure and post-publish smoke/install coverage.
 - Latest maintenance handoff (2026-09-12):
   - Package commit `fed645d` (`Update Dart Sass and Material Symbols snapshot`)
     is pushed to `origin/main`.
