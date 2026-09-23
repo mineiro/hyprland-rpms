@@ -67,7 +67,7 @@ Key files/directories:
 - Monorepo scaffold is complete and lintable.
 - `make list` works.
 - `make check-specs` passes (`rpmspec` parse + `rpmlint`).
-- Latest maintenance pass (2026-09-23, local validation complete; publication pending):
+- Latest maintenance pass (2026-09-23; commit `5bea0a1` is pushed and fully published):
   - Worktree started clean on `main` at `ddf67de`. Updated five release packages:
     `aquamarine` `0.15.0 -> 0.15.1`, `caelestia-cli` `1.1.2 -> 1.1.3`,
     `dart-sass` `1.104.1 -> 1.105.0`, `hyprland-protocols` `0.7.0 -> 0.7.1`,
@@ -98,9 +98,27 @@ Key files/directories:
     The AstalWl path move and Protocols build-system move were both caught and
     fixed during mock validation. Aarch64 mock was not run; COPR should build
     its native aarch64 chroots.
-  - Not yet committed or published. Next: commit and push the package set,
-    trigger COPR builds in provider/dependency order for all six chroots, then
-    check repoclosure and post-publish smoke/install coverage.
+  - Commit `5bea0a1` (`Update Hyprland maintenance package set`) is pushed to
+    `origin/main`. COPR build IDs, all succeeded across Fedora 43/44/rawhide
+    x86_64/aarch64 (162/162 chroot package builds):
+    - First batch: `aquamarine` `11023587`, `caelestia-cli` `11023595`,
+      `dart-sass` `11023597`, `hyprland-protocols` `11023598`, `uwsm` `11023599`,
+      `material-symbols-fonts` `11023600`, `astal-apps` `11023602`,
+      `astal-auth` `11023603`, `astal-battery` `11023605`,
+      `astal-bluetooth` `11023606`, `astal-cava` `11023608`,
+      `astal-hyprland` `11023610`, `astal-io` `11023611`,
+      `astal-network` `11023613`, `astal-power-profiles` `11023615`,
+      `astal-quarrel` `11023616`, `astal-tray` `11023617`,
+      `astal-wireplumber` `11023618`, `astal-wl` `11023619`.
+    - Dependency wave: `hyprtoolkit` `11023621`; `astal-greet` `11023622`,
+      `astal-mpris` `11023623`, `astal-notifd` `11023624`, `astal3` `11023626`,
+      `astal4` `11023627`, `astal-river` `11023628`, and `hyprland` `11023629`.
+  - Post-publish GitHub checks passed: spec lint `35818377458`, repoclosure
+    `35823735113` on all three releases, and desktop smoke `35823737243` on all
+    three releases. Fresh Fedora 43/44/rawhide containers installed the changed
+    leaf packages and full Astal package set from COPR; `sass --version` reports
+    `1.105.0`, and installed RPM metadata confirmed the published versions.
+  - No failed build or validation gates remain from this pass.
 - Latest maintenance handoff (2026-09-12):
   - Package commit `fed645d` (`Update Dart Sass and Material Symbols snapshot`)
     is pushed to `origin/main`.
