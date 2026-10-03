@@ -232,8 +232,12 @@ run_inside_container() {
   log "Checking smoke-test target packages are published in ${repo_id}"
   assert_copr_repo_packages_available "${repo_id}" "${all_packages[@]}"
 
+  # Require the newest published build of every package.  Without best=True,
+  # DNF falls back to older builds when the newest one has an unresolvable
+  # dependency, so a broken repo still installs and the run passes against a
+  # stale, mixed stack (as with hyprtoolkit after rawhide's abseil soname move).
   log "Installing smoke-test target packages"
-  dnf_cmd -y --refresh install "${dnf_opts[@]}" "${all_packages[@]}"
+  dnf_cmd -y --refresh install --setopt=best=True "${dnf_opts[@]}" "${all_packages[@]}"
 
   log "Verifying RPMs are installed"
   rpm -q "${all_packages[@]}"
