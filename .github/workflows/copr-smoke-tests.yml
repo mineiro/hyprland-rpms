@@ -39,3 +39,24 @@ jobs:
       - name: Run COPR smoke test
         run: |
           bash ./scripts/copr-smoke-tests.sh --inside-container
+
+  report:
+    needs: smoke
+    if: ${{ always() && needs.smoke.result != 'cancelled' && needs.smoke.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      checks: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Open, update, or close the tracking issue
+        run: |
+          if [ "${{ needs.smoke.result }}" = success ]; then
+            ./scripts/ci-issue.sh alert ci-smoke "COPR smoke tests are failing" passing
+          else
+            ./scripts/ci-issue.sh run-summary > "${RUNNER_TEMP}/body.md"
+            ./scripts/ci-issue.sh alert ci-smoke "COPR smoke tests are failing" failing "${RUNNER_TEMP}/body.md"
+          fi
