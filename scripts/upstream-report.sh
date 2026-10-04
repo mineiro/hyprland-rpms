@@ -15,10 +15,16 @@ hold_reason() {
   (UPSTREAM_HOLD=""; source "${env_file}"; printf '%s' "${UPSTREAM_HOLD}")
 }
 
+# Read columns by header name; checkers in different repositories print
+# different column sets (SOURCE is optional).
+rows="$(awk 'NR == 1 { for (i = 1; i <= NF; i++) col[$i] = i; next }
+  NF { printf "%s\t%s\t%s\t%s\t%s\n", $col["PACKAGE"], $col["LOCAL"], $col["UPSTREAM"],
+       $col["STATUS"], ("SOURCE" in col) ? $col["SOURCE"] : "-" }' <<<"${check_output}")"
+
 actionable=()
 held=()
-while read -r package local_version upstream_version status source _; do
-  [[ -n "${package}" && "${package}" != "PACKAGE" ]] || continue
+while IFS=$'\t' read -r package local_version upstream_version status source; do
+  [[ -n "${package}" ]] || continue
   row="| \`${package}\` | ${local_version} | ${upstream_version} | ${status} | ${source} |"
   reason="$(hold_reason "${package}")"
   if [[ -n "${reason}" ]]; then
@@ -26,7 +32,7 @@ while read -r package local_version upstream_version status source _; do
   else
     actionable+=("${row}")
   fi
-done <<<"${check_output}"
+done <<<"${rows}"
 
 [[ ${#actionable[@]} -gt 0 ]] || exit 0
 
