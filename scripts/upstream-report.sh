@@ -6,7 +6,12 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
-check_output="$("${repo_root}/scripts/check-upstream-versions.sh" --changed-only)"
+checker="${repo_root}/scripts/check-upstream-versions.sh"
+checker_args=()
+if "${checker}" --help 2>&1 | grep -q -- --changed-only; then
+  checker_args+=(--changed-only)
+fi
+check_output="$("${checker}" "${checker_args[@]}")"
 
 hold_reason() {
   local env_file="${repo_root}/packages/$1/package.env"
@@ -25,6 +30,10 @@ actionable=()
 held=()
 while IFS=$'\t' read -r package local_version upstream_version status source; do
   [[ -n "${package}" ]] || continue
+  # Current packages are noise unless their source check failed.
+  if [[ "${status}" == "same" || "${status}" == "manual" ]]; then
+    [[ "${source}" == missing* || "${source}" == unknown* ]] || continue
+  fi
   row="| \`${package}\` | ${local_version} | ${upstream_version} | ${status} | ${source} |"
   reason="$(hold_reason "${package}")"
   if [[ -n "${reason}" ]]; then
