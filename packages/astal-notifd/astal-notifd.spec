@@ -1,10 +1,10 @@
-%global astal_commit be986c11800fd6ec490eb46e3f1f36ca6945bfef
+%global astal_commit cbcd9f49dd6b9638dc5623b56cc6e1e0a60b593e
 %global astal_shortcommit %(c=%{astal_commit}; echo ${c:0:7})
 %global snapshot_date 20260923
 
 Name:           astal-notifd
 Version:        0.1.0
-Release:        %autorelease -b 7
+Release:        %autorelease -b 8
 Summary:        Notification daemon library and CLI bindings for Astal
 
 License:        LGPL-2.1-only
