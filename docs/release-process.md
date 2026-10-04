@@ -13,7 +13,7 @@
      consumers by changing their `Version` or `Release`.
 3. Build SRPM locally:
    - `make srpm PACKAGE=<name>`
-4. Build in `mock` for Fedora 43/44/rawhide (x86_64 baseline):
+4. Build in `mock` for Fedora 43/44/45/rawhide (x86_64 baseline):
    - `mock -r fedora-43-x86_64 --rebuild dist/srpm/<file>.src.rpm`
    - `mock -r fedora-44-x86_64 --rebuild dist/srpm/<file>.src.rpm`
    - `mock -r fedora-rawhide-x86_64 --rebuild dist/srpm/<file>.src.rpm`

@@ -31,7 +31,7 @@ This repo is intentionally structured as a packaging monorepo, not a generic sof
 
 - Track stable upstream releases first
 - Keep package build order and dependency floors explicit
-- Support Fedora `43`, `44`, and `rawhide`
+- Support Fedora `43`, `44`, `45`, and `rawhide`
 - Make COPR package definitions reproducible (documented and scriptable)
 - Add automation incrementally after local/manual builds are stable
 
@@ -108,7 +108,7 @@ Check one package:
 ./scripts/check-upstream-versions.sh --package hyprland
 ```
 
-Run a full mock matrix across Fedora 43/44/rawhide and x86_64/aarch64:
+Run a full mock matrix across Fedora 43/44/45/rawhide and x86_64/aarch64:
 
 ```bash
 ./scripts/mock-matrix-build.sh --all-packages

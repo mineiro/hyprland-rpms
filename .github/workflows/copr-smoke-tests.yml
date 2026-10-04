@@ -17,6 +17,7 @@ jobs:
         fedora_version:
           - "43"
           - "44"
+          - "45"
           - rawhide
     container:
       image: registry.fedoraproject.org/fedora:${{ matrix.fedora_version }}

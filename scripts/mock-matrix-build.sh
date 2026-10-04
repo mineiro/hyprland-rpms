@@ -13,7 +13,7 @@ Usage:
 
 Options:
   --all-packages              Build every package under packages/
-  --release <43|44|rawhide>  Target Fedora release (repeatable)
+  --release <43|44|45|rawhide>  Target Fedora release (repeatable)
   --arch <x86_64|aarch64>    Target architecture (repeatable)
   --mode <chain|rebuild>     Build mode (default: chain)
   --addrepo <url>            Extra repository for mock buildroot (repeatable)
@@ -50,7 +50,7 @@ require_cmd() {
 
 is_valid_release() {
   case "$1" in
-    43|44|rawhide)
+    43|44|45|rawhide)
       return 0
       ;;
     *)
@@ -193,7 +193,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ${release_set} -eq 0 ]]; then
-  releases=(43 44 rawhide)
+  releases=(43 44 45 rawhide)
 fi
 
 if [[ ${arch_set} -eq 0 ]]; then

@@ -8,17 +8,26 @@ This repo is designed for COPR `SCM` package entries (one entry per package dire
 - Chroots:
   - `fedora-43-x86_64`
   - `fedora-44-x86_64`
+  - `fedora-45-x86_64`
   - `fedora-rawhide-x86_64`
   - `fedora-43-aarch64`
   - `fedora-44-aarch64`
+  - `fedora-45-aarch64`
   - `fedora-rawhide-aarch64`
+
+When a Fedora release branches, add its chroots and build every package into
+them in dependency order (providers first), restricting each build to the new
+chroots with `-r`. Derive the order from `BuildRequires` resolved against the
+published repo metadata, including runtime requirements of the in-repo build
+dependencies.
 
 If x86_64 builds are already stable and you are only rolling out aarch64,
 trigger builds with explicit aarch64 chroots only:
 
 ```bash
 copr-cli build-package <owner>/<project> --name <pkg> \
-  -r fedora-43-aarch64 -r fedora-44-aarch64 -r fedora-rawhide-aarch64
+  -r fedora-43-aarch64 -r fedora-44-aarch64 -r fedora-45-aarch64 \
+  -r fedora-rawhide-aarch64
 ```
 
 If the package depends on another COPR package that is also being rolled out to

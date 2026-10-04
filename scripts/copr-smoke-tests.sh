@@ -10,7 +10,7 @@ Usage:
 
 Examples:
   ./scripts/copr-smoke-tests.sh mineiro hyprland
-  ./scripts/copr-smoke-tests.sh mineiro hyprland 43 44 rawhide
+  ./scripts/copr-smoke-tests.sh mineiro hyprland 43 44 45 rawhide
 
 Environment variables:
   COPR_OWNER            COPR owner (alternative to positional arg)
@@ -336,7 +336,7 @@ run_with_podman() {
   elif [[ -n "${FEDORA_VERSIONS:-}" ]]; then
     IFS=',' read -r -a versions <<<"${FEDORA_VERSIONS}"
   else
-    versions=(43 44 rawhide)
+    versions=(43 44 45 rawhide)
   fi
 
   for version in "${versions[@]}"; do
