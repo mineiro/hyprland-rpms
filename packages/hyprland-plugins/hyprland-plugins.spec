@@ -24,7 +24,7 @@
 
 Name:           hyprland-plugins
 Version:        0.56.0
-Release:        %autorelease -b 3
+Release:        %autorelease -b 4
 Summary:        Official plugins for Hyprland
 
 License:        BSD-3-Clause
@@ -75,6 +75,11 @@ Requires:       hyprland%{?_isa} = %{hyprland_target_version}\
 
 %prep
 %autosetup -n %{name}-%{version} -p1
+
+# Upstream meson.build files collect sources with `find . -name '*.cpp'`, which
+# also matches meson-private/sanity_check_for_cpp.cpp inside an in-tree build
+# directory (left there by Meson >= 1.12). Build outside each plugin directory.
+%global _vpath_builddir ../build-${plugin}
 
 %build
 for plugin in %{plugins}; do
